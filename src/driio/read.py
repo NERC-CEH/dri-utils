@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, List, Optional
+from typing import Any, List, Optional, Self
 
 import duckdb
 from duckdb import DuckDBPyConnection
@@ -9,6 +9,21 @@ from driio.utils import remove_protocol_from_url
 
 class ReaderInterface(ABC):
     """Abstract implementation for a IO reader"""
+
+    _connection: Any
+    """Reference to the connection object"""
+
+    def __enter__(self) -> Self:
+        """Creates a connection when used in a context block"""
+        return self
+
+    def __exit__(self, *args) -> None:
+        """Closes the connection when exiting the context"""
+        self._connection.close()
+
+    def __del__(self):
+        """Closes the connection when deleted"""
+        self._connection.close()
 
     @abstractmethod
     def read(self, *args, **kwargs) -> Any:
@@ -21,42 +36,44 @@ class DuckDBReader(ReaderInterface):
     _connection: DuckDBPyConnection
     """A connection to DuckDB"""
 
-    def __enter__(self):
-        """Creates a connection when used in a context block"""
-        self._connection = duckdb.connect()
-
-    def __exit__(self, *args) -> None:
-        """Closes the connection when exiting the context"""
-        self._connection.close()
-
-    def __del__(self):
-        """Closes the connection when deleted"""
-        self._connection.close()
-
     def __init__(self, *args, **kwargs) -> None:
         self._connection = duckdb.connect()
+
+    def read(self, query: str, params: Optional[List] = None) -> DuckDBPyConnection:
+        """Requests to read a file
+
+        Args:
+            query: The query to send.
+            params: The parameters to supplement the query.
+        """
+
+        return self._connection.execute(query, params)
+
+    def close(self) -> None:
+        """Close the connection"""
+        self._connection.close()
 
 
 class DuckDBS3Reader(DuckDBReader):
     """Concrete Implementation of a DuckDB reader for reading
     data from an S3 endpoint"""
 
-    def __init__(
-        self,
-        auth_type: str,
-        endpoint_url: Optional[str] = None,
-    ) -> None:
+    def __init__(self, auth_type: str, endpoint_url: Optional[str] = None, use_ssl: bool = True) -> None:
         """Initializes
 
         Args:
+            auth_type: The type of authentication to request. May
+            be one of ["auto", "sts", "custom_endpoint"]
             endpoint_url: Custom s3 endpoint
+            use_ssl: Flag for using ssl (https connections).
         """
 
-        self._connection = duckdb.connect()
+        super().__init__()
 
         auth_type = auth_type.lower()
 
         VALID_AUTH_METHODS = ["auto", "sts", "custom_endpoint"]
+
         if auth_type not in VALID_AUTH_METHODS:
             raise ValueError(f"Invalid `auth_type`, must be one of {VALID_AUTH_METHODS}")
 
@@ -72,7 +89,10 @@ class DuckDBS3Reader(DuckDBReader):
         elif auth_type == "sts":
             self._sts_auth()
         elif auth_type == "custom_endpoint":
-            self._custom_endpoint_auth(endpoint_url)
+            if not isinstance(endpoint_url, str):
+                endpoint_url = str(endpoint_url)
+
+            self._custom_endpoint_auth(endpoint_url, use_ssl)
 
     def _auto_auth(self) -> None:
         """Automatically authenticates using environment variables"""
@@ -90,6 +110,8 @@ class DuckDBS3Reader(DuckDBReader):
         """Authenicates using assumed roles on AWS"""
 
         self._connection.execute("""
+                INSTALL aws;
+                LOAD aws;
                 CREATE SECRET (
                     TYPE S3,
                     PROVIDER CREDENTIAL_CHAIN,
@@ -97,7 +119,7 @@ class DuckDBS3Reader(DuckDBReader):
                 );
             """)
 
-    def _custom_endpoint_auth(self, endpoint_url: str, use_ssl: Optional[bool] = False) -> None:
+    def _custom_endpoint_auth(self, endpoint_url: str, use_ssl: bool = True) -> None:
         """Authenticates to a custom endpoint
 
         Args:
@@ -110,30 +132,10 @@ class DuckDBS3Reader(DuckDBReader):
                 TYPE S3,
                 ENDPOINT '{remove_protocol_from_url(endpoint_url)}',
                 URL_STYLE 'path',
-                USE_SSL 'false'
+                USE_SSL '{str(use_ssl).lower()}'
             );
         """)
 
-    def read(self, query: str, params: Optional[List] = None) -> Any:
-        """Requests to read a file
 
-        Args:
-            query: The query to send.
-            params: The parameters to supplement the query.
-        """
-
-        return self._connection.execute(query, params)
-
-
-if __name__ == "__main__":
-    # reader = DuckDBS3Reader("sts")
-    # query = "SELECT * FROM read_parquet('s3://ukceh-fdri-staging-timeseries-level-0/cosmos/PRECIP_1MIN_2024_LOOPED/2024-02/2024-02-14.parquet');"
-    # print(reader.read(query).pl())
-
-    endpoint = "http://localhost:4566"
-    file = "s3://ukceh-fdri-timeseries-level-0/cosmos/PRECIP_1MIN_2024_LOOPED/2024-01/2024-01-01.parquet"
-    query = f"SELECT * FROM read_parquet('{file}');"
-    print(query)
-    reader = DuckDBS3Reader("custom_endpoint", endpoint_url=endpoint)
-
-    print(reader.read(query).pl())
+class DuckDBFileReader(DuckDBReader):
+    """DuckDB implementation for reading files"""
