@@ -1,7 +1,7 @@
-mypackage
+driio
 =========
 
 .. toctree::
    :maxdepth: 4
 
-   mypackage
+   driio

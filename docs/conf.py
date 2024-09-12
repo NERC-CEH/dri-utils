@@ -6,13 +6,13 @@
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-import mypackage
+import driio
 
 project = 'My Project'
 copyright = '2024, UKCEH'
 author = 'UKCEH'
 
-release = mypackage.__version__
+release = driio.__version__
 version = release
 
 # -- General configuration ---------------------------------------------------

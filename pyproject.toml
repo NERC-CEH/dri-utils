@@ -4,10 +4,8 @@ requires = ["setuptools >= 61.0", "autosemver"]
 
 [project]
 requires-python = ">=3.12"
-dependencies = [
-    "autosemver"
-]
-name = "mypackage"
+dependencies = ["autosemver"]
+name = "dri-io"
 dynamic = ["version"]
 authors = [{ name = "John Doe", email = "johdoe@ceh.ac.uk" }]
 description = "A minimal setup for a template package."
@@ -16,22 +14,20 @@ description = "A minimal setup for a template package."
 test = ["pytest", "pytest-cov", "parameterized"]
 docs = ["sphinx", "sphinx-copybutton", "sphinx-rtd-theme"]
 lint = ["ruff"]
-dev = ["mypackage[test,docs,lint]"]
+dev = ["driio[test,docs,lint]"]
 
 [tool.setuptools.dynamic]
-version = { attr = "mypackage.__version__" }
+version = { attr = "driio.__version__" }
 
 
 [tool.setuptools.packages.find]
 where = ["src"]
-include = ["mypackage*"]
+include = ["driio*"]
 
 [tool.pytest.ini_options]
 
-addopts = "--cov=mypackage"
-markers = [
-    "slow: Marks slow tests",
-]
+addopts = "--cov=driio"
+markers = ["slow: Marks slow tests"]
 
 filterwarnings = [
     "ignore::DeprecationWarning:autosemver.*:",
@@ -47,7 +43,22 @@ include = ["src/**.py"]
 line-length = 120
 
 [tool.ruff.lint]
-select = ["F", "E", "W", "A", "PLC", "PLE", "PLW", "I", "N816", "ANN001", "ANN201", "ANN202", "ANN205", "ANN206"]
+select = [
+    "F",
+    "E",
+    "W",
+    "A",
+    "PLC",
+    "PLE",
+    "PLW",
+    "I",
+    "N816",
+    "ANN001",
+    "ANN201",
+    "ANN202",
+    "ANN205",
+    "ANN206",
+]
 
 [tool.ruff.lint.flake8-type-checking]
 strict = true

@@ -1,13 +1,13 @@
-mypackage package
+driio package
 =================
 
 Submodules
 ----------
 
-mypackage.module module
+driio.module module
 -----------------------
 
-.. automodule:: mypackage.module
+.. automodule:: driio.module
    :members:
    :undoc-members:
    :show-inheritance:
@@ -15,7 +15,7 @@ mypackage.module module
 Module contents
 ---------------
 
-.. automodule:: mypackage
+.. automodule:: driio
    :members:
    :undoc-members:
    :show-inheritance:
