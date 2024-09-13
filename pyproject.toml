@@ -14,7 +14,9 @@ description = "A minimal setup for a template package."
 test = ["pytest", "pytest-cov", "parameterized"]
 docs = ["sphinx", "sphinx-copybutton", "sphinx-rtd-theme"]
 lint = ["ruff"]
-dev = ["dri-utils[test,docs,lint]"]
+datetime = ["isodate"]
+all = ["dri-utils[datetime]"]
+dev = ["dri-utils[all,test,docs,lint]"]
 
 [tool.setuptools.dynamic]
 version = { attr = "driutils.__version__" }
@@ -26,7 +28,7 @@ include = ["driutils*"]
 
 [tool.pytest.ini_options]
 
-addopts = "--cov=driutils"
+addopts = "--cov=driutils --cov-report term-missing"
 markers = ["slow: Marks slow tests"]
 
 filterwarnings = [

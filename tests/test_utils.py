@@ -1,6 +1,6 @@
 import unittest
 
-from driutils.utils import remove_protocol_from_url
+from driutils.utils import remove_protocol_from_url, ensure_list
 
 class TestRemoveProtocolFromUrl(unittest.TestCase):
     def test_https_url(self):
@@ -37,3 +37,40 @@ class TestRemoveProtocolFromUrl(unittest.TestCase):
         expected = "www.example.com"
         result = remove_protocol_from_url(url)
         self.assertEqual(result, expected)
+
+class TestSteralizeSiteIds(unittest.TestCase):
+    def test_none_input(self):
+        """Test with None as input, should return an empty list.
+        """
+        result = ensure_list(None)
+        self.assertEqual(result, [])
+
+    def test_no_input(self):
+        """Test with no input, should return an empty list.
+        """
+        result = ensure_list()
+        self.assertEqual(result, [])
+
+    def test_empty_string_input(self):
+        """Test with an empty string as input, should return an empty list.
+        """
+        result = ensure_list('')
+        self.assertEqual(result, [])
+
+    def test_single_string_input(self):
+        """Test with a single site ID as a string.
+        """
+        result = ensure_list('site1')
+        self.assertEqual(result, ['site1'])
+
+    def test_list_of_strings_input(self):
+        """Test with a list of site IDs.
+        """
+        result = ensure_list(['site1', 'site2', 'site3'])
+        self.assertEqual(result, ['site1', 'site2', 'site3'])
+
+    def test_empty_list_input(self):
+        """Test with an empty list, should return an empty list.
+        """
+        result = ensure_list([])
+        self.assertEqual(result, [])
