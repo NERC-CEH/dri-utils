@@ -4,7 +4,7 @@ from typing import Any, List, Optional, Self
 import duckdb
 from duckdb import DuckDBPyConnection
 
-from driio.utils import remove_protocol_from_url
+from driutils.utils import remove_protocol_from_url
 
 
 class ReaderInterface(ABC):

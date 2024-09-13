@@ -1,7 +1,6 @@
 # DRI IO
 
-[![tests badge](https://github.com/NERC-CEH/dri-io/actions/workflows/pipeline.yml/badge.svg)](https://github.com/NERC-CEH/dri-io/actions)
-[![docs badge](https://github.com/NERC-CEH/dri-io/actions/workflows/deploy-docs.yml/badge.svg)](https://nerc-ceh.github.io/dri-io/)
+[![tests badge](https://github.com/NERC-CEH/dri-utils/actions/workflows/pipeline.yml/badge.svg)](https://github.com/NERC-CEH/dri-utils/actions)
 
 This is a Python package that serves to hold commonly implemented Input/Output actions, typically reading and writing file
 
@@ -59,7 +58,7 @@ The DuckDB classes use the duckdb python interface to read files from local docu
 To read a local file:
 ```python
 
-from driio.read import DuckDBFileReader
+from driutils.read import DuckDBFileReader
 
 reader = DuckDBFileReader()
 query = "SELECT * FROM READ_PARQUET('myfile.parquet');"
@@ -92,7 +91,7 @@ To read from an S3 storage location there is a more configuration available and 
 
 The reader is instantiated like this:
 ```python
-from driio.read import import DuckDBS3Reader
+from driutils.read import import DuckDBS3Reader
 
 # Automatic authentication from your environment
 auto_auth_reader = DuckDBS3Reader("auto")
@@ -118,3 +117,23 @@ custom_url_reader = DuckDBS3Reader(
 ```
 
 The `reader.read()` in the background forwards a DuckDB SQL query and parameters to fill arguments in the query with.
+
+## Writers
+
+### S3 Object Writer
+
+The `S3Writer` uploads files to S3 using a pre-existing `S3Client` which is left to the user to resource, but is commonly implemented as:
+```python
+
+import boto3
+from driutils.write import S3Writer
+
+s3_client = boto3.client('s3', endpoint_url="an_optional_url")
+content = "Just a lil string"
+
+writer = S3Writer(s3_client)
+writer.write(
+    bucket_name="target-bucket",
+    key="path/to/upload/destination",
+    body=content
+)

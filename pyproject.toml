@@ -4,8 +4,8 @@ requires = ["setuptools >= 61.0", "autosemver"]
 
 [project]
 requires-python = ">=3.12"
-dependencies = ["autosemver", "duckdb"]
-name = "dri-io"
+dependencies = ["autosemver", "duckdb", "boto3", "mypy_boto3_s3"]
+name = "dri-utils"
 dynamic = ["version"]
 authors = [{ name = "John Doe", email = "johdoe@ceh.ac.uk" }]
 description = "A minimal setup for a template package."
@@ -14,19 +14,19 @@ description = "A minimal setup for a template package."
 test = ["pytest", "pytest-cov", "parameterized"]
 docs = ["sphinx", "sphinx-copybutton", "sphinx-rtd-theme"]
 lint = ["ruff"]
-dev = ["driio[test,docs,lint]"]
+dev = ["dri-utils[test,docs,lint]"]
 
 [tool.setuptools.dynamic]
-version = { attr = "driio.__version__" }
+version = { attr = "driutils.__version__" }
 
 
 [tool.setuptools.packages.find]
 where = ["src"]
-include = ["driio*"]
+include = ["driutils*"]
 
 [tool.pytest.ini_options]
 
-addopts = "--cov=driio"
+addopts = "--cov=driutils"
 markers = ["slow: Marks slow tests"]
 
 filterwarnings = [
