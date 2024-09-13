@@ -36,7 +36,7 @@ class DuckDBReader(ReaderInterface):
     _connection: DuckDBPyConnection
     """A connection to DuckDB"""
 
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(self) -> None:
         self._connection = duckdb.connect()
 
     def read(self, query: str, params: Optional[List] = None) -> DuckDBPyConnection:
