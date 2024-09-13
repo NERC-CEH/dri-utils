@@ -1,10 +1,7 @@
 """Module for handling data writing logic"""
 
 from abc import ABC, abstractmethod
-from io import BytesIO
-from typing import Any
 
-import polars as pl
 from botocore.client import BaseClient
 from mypy_boto3_s3.client import S3Client
 
@@ -28,37 +25,14 @@ class S3Writer(WriterInterface):
 
         Args:
             s3_client: The s3 client used to retrieve data from
+        Raises:
+            TypeError
         """
 
         if not isinstance(s3_client, BaseClient):
             raise TypeError(f"`s3_client` must be a `S3Client` not `{type(s3_client)}`")
 
         self.s3_client = s3_client
-
-    @staticmethod
-    def _get_bytes(obj: Any) -> BytesIO:
-        """Converts an object to bytes
-
-        Args:
-            obj: The object to convert.
-        Returns:
-            bytes representation of the object.
-        """
-
-        buffer = BytesIO()
-
-        if hasattr(obj, "to_bytes") and callable(obj.to_bytes):
-            buffer.write(obj.to_bytes())
-        elif isinstance(obj, str):
-            buffer.write(str.encode(obj))
-        elif isinstance(obj, pl.dataframe.DataFrame):
-            obj.write_parquet(buffer)
-        else:
-            raise TypeError(f"Bytes conversion not supported for type: '{type(obj)}'")
-
-        buffer.seek(0)
-
-        return buffer
 
     def write(self, bucket_name: str, key: str, body: bytes) -> None:
         """Uploads an object to an S3 bucket.
@@ -76,6 +50,6 @@ class S3Writer(WriterInterface):
             RuntimeError, ClientError
         """
         if not isinstance(body, bytes):
-            body = self._get_bytes(body)
+            raise TypeError(f"'body' must be 'bytes', not '{type(body)}")
 
         self.s3_client.put_object(Bucket=bucket_name, Key=key, Body=body)
