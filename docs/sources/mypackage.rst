@@ -1,13 +1,13 @@
-driio package
+driutils package
 =================
 
 Submodules
 ----------
 
-driio.module module
+driutils.module module
 -----------------------
 
-.. automodule:: driio.module
+.. automodule:: driutils.module
    :members:
    :undoc-members:
    :show-inheritance:
@@ -15,7 +15,7 @@ driio.module module
 Module contents
 ---------------
 
-.. automodule:: driio
+.. automodule:: driutils
    :members:
    :undoc-members:
    :show-inheritance:

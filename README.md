@@ -1,22 +1,8 @@
-# Python Project Template
+# DRI IO
 
-[![tests badge](https://github.com/NERC-CEH/python-template/actions/workflows/pipeline.yml/badge.svg)](https://github.com/NERC-CEH/python-template/actions)
-[![docs badge](https://github.com/NERC-CEH/python-template/actions/workflows/deploy-docs.yml/badge.svg)](https://nerc-ceh.github.io/python-template/)
+[![tests badge](https://github.com/NERC-CEH/dri-utils/actions/workflows/pipeline.yml/badge.svg)](https://github.com/NERC-CEH/dri-utils/actions)
 
-[Read the docs!](https://nerc-ceh.github.io/python-template)
-
-This repository is a template for a basic Python project. Included here is:
-
-* Example Python package
-* Tests
-* Documentation
-* Automatic incremental versioning
-* CI/CD
-    * Installs and tests the package
-    * Builds documentation on branches
-    * Deploys documentation on main branch
-    * Deploys docker image to AWS ECR
-* Githook to ensure linting and code checking
+This is a Python package that serves to hold commonly implemented Input/Output actions, typically reading and writing file
 
 ## Getting Started
 
@@ -64,82 +50,141 @@ The docs, tests, and linter packages can be installed together with:
 pip install -e .[dev]
 ```
 
-### Making it Your Own
+#### Other Optional Packages
 
-This repo has a single package in the `./src/...` path called `driio` (creative I know). Change this to the name of your package and update it in:
-
-* `docs/conf.py`
-* `src/**/*.py`
-* `tests/**/*.py`
-* `pyproject.toml`
-
-To make thing move a bit faster, use the script `./rename-package.sh` to rename all references of `driio` to whatever you like. For example:
+Some utilities need additional packages that aren't relevant to all projects. To install everything, run:
 
 ```
-./rename-package.sh "acoolnewname"
+pip install -e .[all]
 ```
 
-Will rename the package and all references to "acoolnewname"
-
-After doing this it is recommended to also run:
+or to include datetime utilities:
 
 ```
-cd docs
-make apidoc
+pip install -e .[datetime]
 ```
 
-To keep your documentation in sync with the package name. You may need to delete a file called `driio.rst` from `./docs/sources/...`
+#### A Note on Remote Installs
 
-### Deploying Docs to GitHub Pages
-
-If you want docs to be published to github pages automatically, go to your repo settings and enable docs from GitHub Actions and the workflows will do the rest.
-
-### Building Docs Locally
-
-The documentation is driven by [Sphinx](https://www.sphinx-doc.org/) an industry standard for documentation with a healthy userbase and lots of add-ons. It uses `sphinx-apidoc` to generate API documentation for the codebase from Python docstrings.
-
-To run `sphinx-apidoc` run:
+You are likely including this on another project, in this case you should include the git url when installing. For manual installs:
+```
+pip install "dri-utils[all] @ git+https://github.com/NERC-CEH/dri-utils.git"
 
 ```
-# Install your package with optional dependencies for docs
-pip install -e .[docs]
 
-cd docs
-make apidoc
+or if including it in your dependencies
+```
+dependencies = [
+    "another-package",
+    ...
+    "dri-utils[all] @ git+https://github.com/NERC-CEH/dri-utils.git"
+    ]
 ```
 
-This will populate `./docs/sources/...` with `*.rst` files for each Python module, which may be included into the documentation.
+## Readers
 
-Documentation can then be built locally by running `make html`, or found on the [GitHub Deployment](https://nerc-ceh.github.io/python-template).
+### DuckDB Reader
+The DuckDB classes use the duckdb python interface to read files from local documents or S3 object storage - this comes with the capacity to use custom s3 endpoints.
 
-### Run the Tests
+To read a local file:
+```python
 
-To run the tests run:
+from driutils.read import DuckDBFileReader
 
+reader = DuckDBFileReader()
+query = "SELECT * FROM READ_PARQUET('myfile.parquet');"
+result = reader.read(query)
+
+# Result will be a <DuckDBPyConnection object>
+# Get your desired format such as polars like:
+df = result.pl()
+
+# Or pandas
+df = result.df()
+
+# Close the connection
+reader.close()
 ```
-#Install package with optional dependencies for testing
-pip install -e .[test]
 
-pytest
+Alternatively, use a context manager to automatically close the connection:
+```python
+...
+
+with DuckDBFileReader() as reader:
+    df = reader.read(query, params).df()
 ```
 
-### Automatic Versioning
+To read from an S3 storage location there is a more configuration available and there is 3 use cases supported:
 
-This codebase is set up using [autosemver](https://autosemver.readthedocs.io/en/latest/usage.html#) a tool that uses git commit history to calculate the package version. Each time you make a commit, it increments the patch version by 1. You can increment by:
+* Automatic credential loading from current environment variables
+* Automatic credential loading from an assumed role
+* Authentication to a custom s3 endpoint, i.e. localstack. This currently assumes that credentials aren't needed (they aren't for now)
 
-* Normal commit. Use for bugfixes and small updates
-    * Increments patch version: `x.x.5 -> x.x.6`
-* Commit starts with `* NEW:`. Use for new features
-    * Increments minor version `x.1.x -> x.2.x`
-* Commit starts with `* INCOMPATIBLE:`. Use for API breaking changes
-    * Increments major version `2.x.x -> 3.x.x`
+The reader is instantiated like this:
+```python
+from driutils.read import import DuckDBS3Reader
 
-### Docker and the ECR
+# Automatic authentication from your environment
+auto_auth_reader = DuckDBS3Reader("auto")
 
-The python code is packaged into a docker image and pushed to the AWS ECR. For the deployment to succeed you must:
+# Automatic authentication from your assumed role
+sts_auth_reader = DuckDBS3Reader("sts")
 
-* Add 2 secrets to the GitHub Actions:
-    * AWS_REGION: \<our-region\>
-    * AWS_ROLE_ARN: \<the-IAM-role-used-to-deploy\>
-* Add a repository to the ECR with the same name as the GitHub repo
- 
+# Custom url for localstack
+endpoint = "http://localhost:<port>"
+custom_url_reader = DuckDBS3Reader(
+    "custom_endpoint",
+    endpoint_url=endpoint,
+    use_ssl=False
+    )
+
+# Custom url using https protocol
+endpoint = "https://a-real.s3.endpoint"
+custom_url_reader = DuckDBS3Reader(
+    "custom_endpoint",
+    endpoint_url=endpoint,
+    use_ssl=True
+    )
+```
+
+The `reader.read()` in the background forwards a DuckDB SQL query and parameters to fill arguments in the query with.
+
+## Writers
+
+### S3 Object Writer
+
+The `S3Writer` uploads files to S3 using a pre-existing `S3Client` which is left to the user to resource, but is commonly implemented as:
+```python
+
+import boto3
+from driutils.write import S3Writer
+
+s3_client = boto3.client('s3', endpoint_url="an_optional_url")
+content = "Just a lil string"
+
+writer = S3Writer(s3_client)
+writer.write(
+    bucket_name="target-bucket",
+    key="path/to/upload/destination",
+    body=content
+)
+```
+
+## Logging
+
+There is a logging module here that defines the base logging format used for all projects, to use it add:
+
+```python
+
+from driutils import logger
+
+logger.setup_logging()
+```
+
+## Datetime Utilities
+
+The module `driutils.datetime` contains common utilities for working with dates and times in Python. The methods within are currently simple validation methods. Some of the methods require additional packages that are not needed for all projects, so ensure that the package is installed as `pip install .[datetime]` or `pip install .[all]`
+
+## General Utilities
+
+The module `driutils.utils` contains utility methods that didn't fit anywhere else and includes things such as ensuring that a list is always returned and removing protocols from URLs.

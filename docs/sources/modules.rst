@@ -1,7 +1,7 @@
-driio
+driutils
 =========
 
 .. toctree::
    :maxdepth: 4
 
-   driio
+   driutils
