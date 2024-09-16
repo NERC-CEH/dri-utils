@@ -19,10 +19,14 @@ class ReaderInterface(ABC):
 
     def __exit__(self, *args) -> None:
         """Closes the connection when exiting the context"""
-        self._connection.close()
+        self.close()
 
     def __del__(self):
         """Closes the connection when deleted"""
+        self.close()
+
+    def close(self) -> None:
+        """Closes the connection"""
         self._connection.close()
 
     @abstractmethod
@@ -49,10 +53,6 @@ class DuckDBReader(ReaderInterface):
 
         return self._connection.execute(query, params)
 
-    def close(self) -> None:
-        """Close the connection"""
-        self._connection.close()
-
 
 class DuckDBS3Reader(DuckDBReader):
     """Concrete Implementation of a DuckDB reader for reading
@@ -70,36 +70,46 @@ class DuckDBS3Reader(DuckDBReader):
 
         super().__init__()
 
-        auth_type = auth_type.lower()
+        auth_type = str(auth_type).lower()
 
         VALID_AUTH_METHODS = ["auto", "sts", "custom_endpoint"]
 
         if auth_type not in VALID_AUTH_METHODS:
             raise ValueError(f"Invalid `auth_type`, must be one of {VALID_AUTH_METHODS}")
 
+        self._connection.install_extension("httpfs")
+        self._connection.load_extension("httpfs")
         self._connection.execute("""
-            INSTALL httpfs;
-            LOAD httpfs;
             SET force_download = true;
             SET http_keep_alive = false;
         """)
 
-        if auth_type == "auto":
+        self._authenticate(auth_type, endpoint_url, use_ssl)
+
+    def _authenticate(self, method: str, endpoint_url: Optional[str] = None, use_ssl: Optional[bool] = None) -> None:
+        """Handles authentication selection
+
+        Args:
+            method: method of authentication used
+            endpoint_url: Custom s3 endpoint
+            use_ssl: Flag for using ssl (https connections)
+        """
+        if method == "auto":
             self._auto_auth()
-        elif auth_type == "sts":
+        elif method == "sts":
             self._sts_auth()
-        elif auth_type == "custom_endpoint":
-            if not isinstance(endpoint_url, str):
-                endpoint_url = str(endpoint_url)
+        elif method == "custom_endpoint":
+            if not endpoint_url:
+                raise ValueError("`endpoint_url` must be provided for `custom_endpoint` authentication")
 
             self._custom_endpoint_auth(endpoint_url, use_ssl)
 
     def _auto_auth(self) -> None:
         """Automatically authenticates using environment variables"""
 
+        self._connection.install_extension("aws")
+        self._connection.load_extension("aws")
         self._connection.execute("""
-            INSTALL aws;
-            LOAD aws;
             CREATE SECRET (
                 TYPE S3,
                 PROVIDER CREDENTIAL_CHAIN
@@ -108,10 +118,10 @@ class DuckDBS3Reader(DuckDBReader):
 
     def _sts_auth(self) -> None:
         """Authenicates using assumed roles on AWS"""
+        self._connection.install_extension("aws")
+        self._connection.load_extension("aws")
 
         self._connection.execute("""
-                INSTALL aws;
-                LOAD aws;
                 CREATE SECRET (
                     TYPE S3,
                     PROVIDER CREDENTIAL_CHAIN,
