@@ -2,7 +2,7 @@ import unittest
 from unittest.mock import patch
 from datetime import date, datetime
 
-from driutils.datetime import steralize_dates, validate_iso8601_duration
+from driutils.datetime import steralize_date_range, validate_iso8601_duration
 
 class TestValidateISO8601Duration(unittest.TestCase):
     @patch("builtins.__import__")
@@ -62,7 +62,7 @@ class TestSteralizeDates(unittest.TestCase):
         start = date(2023, 8, 1)
         expected_start = datetime.combine(start, datetime.min.time())
         expected_end = datetime.combine(start, datetime.max.time())
-        result = steralize_dates(start)
+        result = steralize_date_range(start)
         self.assertEqual(result, (expected_start, expected_end))
 
     def test_start_date_and_end_date_as_dates(self):
@@ -72,7 +72,7 @@ class TestSteralizeDates(unittest.TestCase):
         end = date(2023, 8, 10)
         expected_start = datetime.combine(start, datetime.min.time())
         expected_end = datetime.combine(end, datetime.max.time())
-        result = steralize_dates(start, end)
+        result = steralize_date_range(start, end)
         self.assertEqual(result, (expected_start, expected_end))
 
     def test_start_date_after_end_date_error(self):
@@ -81,7 +81,7 @@ class TestSteralizeDates(unittest.TestCase):
         start = date(2023, 8, 10)
         end = date(2023, 8, 1)
         with self.assertRaises(UserWarning):
-            steralize_dates(start, end)
+            steralize_date_range(start, end)
 
     def test_start_date_equals_end_date(self):
         """Test with start_date equal to end_date that datetimes of start and end of that date are returned.
@@ -90,14 +90,14 @@ class TestSteralizeDates(unittest.TestCase):
         end = date(2023, 8, 1)
         expected_start = datetime.combine(start, datetime.min.time())
         expected_end = datetime.combine(end, datetime.max.time())
-        result = steralize_dates(start, end)
+        result = steralize_date_range(start, end)
         self.assertEqual(result, (expected_start, expected_end))
 
     def test_datetime_input(self):
         """Test with datetime inputs for both start_date and end_date."""
         start = datetime(2023, 8, 1, 12, 0)
         end = datetime(2023, 8, 10, 18, 0)
-        result = steralize_dates(start, end)
+        result = steralize_date_range(start, end)
         self.assertEqual(result, (start, end))
 
     def test_mixed_date_and_datetime(self):
@@ -105,5 +105,5 @@ class TestSteralizeDates(unittest.TestCase):
         start = date(2023, 8, 1)
         end = datetime(2023, 8, 10, 18, 0)
         expected_start = datetime.combine(start, datetime.min.time())
-        result = steralize_dates(expected_start, end)
+        result = steralize_date_range(expected_start, end)
         self.assertEqual(result, (expected_start, end))

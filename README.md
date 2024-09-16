@@ -50,6 +50,37 @@ The docs, tests, and linter packages can be installed together with:
 pip install -e .[dev]
 ```
 
+#### Other Optional Packages
+
+Some utilities need additional packages that aren't relevant to all projects. To install everything, run:
+
+```
+pip install -e .[all]
+```
+
+or to include datetime utilities:
+
+```
+pip install -e .[datetime]
+```
+
+#### A Note on Remote Installs
+
+You are likely including this on another project, in this case you should include the git url when installing. For manual installs:
+```
+pip install "dri-utils[all] @ git+https://github.com/NERC-CEH/dri-utils.git"
+
+```
+
+or if including it in your dependencies
+```
+dependencies = [
+    "another-package",
+    ...
+    "dri-utils[all] @ git+https://github.com/NERC-CEH/dri-utils.git"
+    ]
+```
+
 ## Readers
 
 ### DuckDB Reader
@@ -137,3 +168,23 @@ writer.write(
     key="path/to/upload/destination",
     body=content
 )
+```
+
+## Logging
+
+There is a logging module here that defines the base logging format used for all projects, to use it add:
+
+```python
+
+from driutils import logger
+
+logger.setup_logging()
+```
+
+## Datetime Utilities
+
+The module `driutils.datetime` contains common utilities for working with dates and times in Python. The methods within are currently simple validation methods. Some of the methods require additional packages that are not needed for all projects, so ensure that the package is installed as `pip install .[datetime]` or `pip install .[all]`
+
+## General Utilities
+
+The module `driutils.utils` contains utility methods that didn't fit anywhere else and includes things such as ensuring that a list is always returned and removing protocols from URLs.

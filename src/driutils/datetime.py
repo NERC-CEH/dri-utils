@@ -29,7 +29,7 @@ def validate_iso8601_duration(duration: str) -> bool:
         return False
 
 
-def steralize_dates(
+def steralize_date_range(
     start_date: Union[date, datetime], end_date: Optional[Union[date, datetime]] = None
 ) -> Tuple[Union[date, datetime], datetime]:
     """
