@@ -1,8 +1,8 @@
-# DRI IO
+# DRI Utils
 
 [![tests badge](https://github.com/NERC-CEH/dri-utils/actions/workflows/pipeline.yml/badge.svg)](https://github.com/NERC-CEH/dri-utils/actions)
 
-This is a Python package that serves to hold commonly implemented Input/Output actions, typically reading and writing file
+This is a Python package that serves to hold commonly re-implemented utilities such ach IO operations.
 
 ## Getting Started
 
