@@ -11,7 +11,7 @@ jobs:
   test-python:
     uses: NERC-CEH/dri-cicd/.github/workflows/test-python.yml@main
     with:
-      optional_dependencies: "[lint, test, all]"
+      optional_dependencies: "[lint,test,all]"
 
   build-test-deploy-docker:
     needs: [test-python]
