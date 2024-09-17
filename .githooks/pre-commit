@@ -43,7 +43,7 @@ if [ "$?" -eq 1 ]; then
 	ret=1
 fi
 
-if [ "${ret}" -eq 1] ; then
+if [ "${ret}" -eq 1 ] ; then
 	echo
 fi
 
