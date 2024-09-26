@@ -81,8 +81,40 @@ dependencies = [
     ]
 ```
 
-## Readers
+## I/O Modules
 
+### AWS S3
+
+#### Reading
+The `S3Reader` class reads files from an S3 object store using the `boto3` client. It simply requires a client to work with to initialize. Provisioning of credentials is left to the user and their s3_client
+
+```python
+from driutils.io.aws import S3Reader
+import boto3
+
+client = boto3.client("s3")
+reader = S3Reader(client)
+
+# Request a file from AWS S3
+
+object_bytes = reader.read(bucket="my-bucket", key="Path/to/file")
+```
+
+#### Writing
+The `S3Writer` operates in the same way as the reader but supplies a `write` method instead of `read`
+
+```python
+from driutils.io.aws import S3Writer
+import boto3
+
+client = boto3.client("s3")
+body = b"I'm a byte encoded document"
+writer = S3Writer(client)
+
+# Submit a file from AWS S3
+
+object_bytes = reader.read(bucket="my-bucket", key="Path/to/file", body=body)
+```
 ### DuckDB Reader
 The DuckDB classes use the duckdb python interface to read files from local documents or S3 object storage - this comes with the capacity to use custom s3 endpoints.
 
