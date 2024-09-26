@@ -1,6 +1,6 @@
 import unittest
 from unittest.mock import patch, MagicMock
-from driutils.io.read import DuckDBFileReader, DuckDBS3Reader
+from driutils.io.duckdb import DuckDBFileReader, DuckDBS3Reader
 import duckdb
 from duckdb import DuckDBPyConnection
 from parameterized import parameterized
@@ -13,7 +13,7 @@ class TestDuckDBFileReader(unittest.TestCase):
 
         self.assertIsInstance(reader._connection, DuckDBPyConnection)
     
-    @patch("driutils.io.read.DuckDBFileReader.close")
+    @patch("driutils.io.duckdb.DuckDBFileReader.close")
     def test_context_manager_is_functional(self, mock):
         """Should be able to use context manager to auto-close file connection"""
 
@@ -22,7 +22,7 @@ class TestDuckDBFileReader(unittest.TestCase):
 
         mock.assert_called_once()
 
-    @patch("driutils.io.read.DuckDBFileReader.close")
+    @patch("driutils.io.duckdb.DuckDBFileReader.close")
     def test_connection_closed_on_delete(self, mock):
         """Tests that duckdb connection is closed when object is deleted"""
 
@@ -72,7 +72,7 @@ class TestDuckDBS3Reader(unittest.TestCase):
             DuckDBS3Reader(value)
 
     @parameterized.expand(["auto", "AUTO", "aUtO"])
-    @patch("driutils.io.read.DuckDBS3Reader._authenticate")
+    @patch("driutils.io.duckdb.DuckDBS3Reader._authenticate")
     def test_upper_or_lowercase_option_accepted(self, value, mock):
         """Tests that the auth options can be provided in any case"""
         DuckDBS3Reader(value)

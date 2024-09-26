@@ -1,44 +1,17 @@
 import logging
-from abc import ABC, abstractmethod
-from typing import Any, List, Optional, Self
+from typing import List, Optional
 
 import duckdb
 from duckdb import DuckDBPyConnection
 from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fixed
 
+from driutils.io.interfaces import ContextClass, ReaderInterface
 from driutils.utils import remove_protocol_from_url
 
 logger = logging.getLogger(__name__)
 
 
-class ReaderInterface(ABC):
-    """Abstract implementation for a IO reader"""
-
-    _connection: Any
-    """Reference to the connection object"""
-
-    def __enter__(self) -> Self:
-        """Creates a connection when used in a context block"""
-        return self
-
-    def __exit__(self, *args) -> None:
-        """Closes the connection when exiting the context"""
-        self.close()
-
-    def __del__(self):
-        """Closes the connection when deleted"""
-        self.close()
-
-    def close(self) -> None:
-        """Closes the connection"""
-        self._connection.close()
-
-    @abstractmethod
-    def read(self, *args, **kwargs) -> Any:
-        """Reads data from a source"""
-
-
-class DuckDBReader(ReaderInterface):
+class DuckDBReader(ContextClass, ReaderInterface):
     """Abstract implementation of a DuckDB Reader"""
 
     _connection: DuckDBPyConnection
