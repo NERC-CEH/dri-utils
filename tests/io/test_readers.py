@@ -1,6 +1,7 @@
 import unittest
 from unittest.mock import patch, MagicMock
 from driutils.io.read import DuckDBFileReader, DuckDBS3Reader
+import duckdb
 from duckdb import DuckDBPyConnection
 from parameterized import parameterized
 
@@ -53,6 +54,14 @@ class TestDuckDBFileReader(unittest.TestCase):
 
         reader._connection.execute.assert_called_once_with(query, params)
 
+    def test_read_missing_file_raises_error(self):
+        """Test that a missing file raises an IOException"""
+        reader = DuckDBFileReader()
+        query = f"SELECT * FROM read_parquet('notafile.parquet')"
+
+        with self.assertRaises(duckdb.IOException):
+            reader.read(query)
+
 class TestDuckDBS3Reader(unittest.TestCase):
     
     @parameterized.expand(["a", 1, "cutom_endpoint"])
@@ -100,3 +109,27 @@ class TestDuckDBS3Reader(unittest.TestCase):
 
         with self.assertRaises(ValueError):
             DuckDBS3Reader("custom_endpoint")
+
+    def test_read_parquet_by_query_with_invalid_key_error(self):
+        """ Test that an invalid key raises error
+        """
+        reader = DuckDBS3Reader("auto")
+        bucket = "fake-bucket"
+        key = "non_existent_key.parquet"
+        query = f"SELECT * FROM read_parquet('s3://{bucket}/{key}')"
+
+        with self.assertRaises(duckdb.HTTPException):
+            reader.read(query)
+
+    def test_read_parquet_retry(self):
+        """ Test that the retry decorator works as expected
+        """
+        reader = DuckDBS3Reader("auto")
+        query = f"SELECT * FROM read_parquet('README.md')"
+
+        with self.assertRaises(duckdb.InvalidInputException):
+            reader.read(query)
+
+        stats = reader.read.statistics
+        self.assertEqual(stats['attempt_number'], 3)  # Should have tried 3 times
+        self.assertEqual(stats['idle_for'], 4)  # Should have waited 2 seconds between each try

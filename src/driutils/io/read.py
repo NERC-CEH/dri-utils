@@ -1,10 +1,14 @@
+import logging
 from abc import ABC, abstractmethod
 from typing import Any, List, Optional, Self
 
 import duckdb
 from duckdb import DuckDBPyConnection
+from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fixed
 
 from driutils.utils import remove_protocol_from_url
+
+logger = logging.getLogger(__name__)
 
 
 class ReaderInterface(ABC):
@@ -43,6 +47,12 @@ class DuckDBReader(ReaderInterface):
     def __init__(self) -> None:
         self._connection = duckdb.connect()
 
+    @retry(
+        retry=retry_if_exception_type(duckdb.InvalidInputException),
+        wait=wait_fixed(2),
+        stop=stop_after_attempt(3),
+        reraise=True,
+    )
     def read(self, query: str, params: Optional[List] = None) -> DuckDBPyConnection:
         """Requests to read a file
 
@@ -51,7 +61,17 @@ class DuckDBReader(ReaderInterface):
             params: The parameters to supplement the query.
         """
 
-        return self._connection.execute(query, params)
+        try:
+            return self._connection.execute(query, params)
+        except duckdb.HTTPException:
+            logger.error(f"Failed to find data from web query: {query}")
+            raise
+        except duckdb.IOException:
+            logger.error(f"Failed to read file from query: {query}")
+            raise
+        except duckdb.InvalidInputException:
+            logger.error(f"Corrupt data found from query: {query}")
+            raise
 
 
 class DuckDBS3Reader(DuckDBReader):
@@ -79,14 +99,11 @@ class DuckDBS3Reader(DuckDBReader):
 
         self._connection.install_extension("httpfs")
         self._connection.load_extension("httpfs")
-        self._connection.execute("""
-            SET force_download = true;
-            SET http_keep_alive = false;
-        """)
+        self._connection.execute("SET force_download = true;")
 
         self._authenticate(auth_type, endpoint_url, use_ssl)
 
-    def _authenticate(self, method: str, endpoint_url: Optional[str] = None, use_ssl: Optional[bool] = None) -> None:
+    def _authenticate(self, method: str, endpoint_url: Optional[str] = None, use_ssl: bool = True) -> None:
         """Handles authentication selection
 
         Args:
