@@ -1,5 +1,5 @@
 import unittest
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, Mock
 from driutils.io.aws import S3Writer, S3Reader
 import boto3
 from botocore.client import BaseClient
@@ -60,10 +60,17 @@ class TestS3Reader(unittest.TestCase):
         cls.s3_client: S3Client = boto3.client("s3") #type: ignore
         cls.bucket = "my-bucket"
         cls.key = "my-key"
-    def test_error_if_read_fails(self) -> None:
+    def test_error_caught_if_read_fails(self) -> None:
         """Tests that a ClientError is raised if read fails"""
 
         reader = S3Reader(self.s3_client)
+        fake_error =  ClientError(operation_name='InvalidKeyPair.Duplicate', error_response={
+            'Error': {
+                'Code': 'Duplicate', 
+                'Message': 'This is a custom message'
+            }
+        })
+        reader._connection.get_object = MagicMock(side_effect=fake_error)
 
         with self.assertRaises((RuntimeError, ClientError)):
             reader.read(self.bucket, self.key)
