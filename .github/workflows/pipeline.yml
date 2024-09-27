@@ -12,12 +12,3 @@ jobs:
     uses: NERC-CEH/dri-cicd/.github/workflows/test-python.yml@main
     with:
       optional_dependencies: "[lint,test,all]"
-
-  build-test-deploy-docker:
-    needs: [test-python]
-    uses: NERC-CEH/dri-cicd/.github/workflows/build-test-deploy-docker.yml@main
-    with:
-      package_name: driutils
-    secrets:
-      AWS_REGION: ${{ secrets.AWS_REGION }}
-      AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
