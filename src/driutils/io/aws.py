@@ -72,7 +72,7 @@ class S3Writer(S3Base, WriterInterface):
             body: data to write to s3 object
 
         Raises:
-            RuntimeError, ClientError
+            TypeError: If body is not bytes
         """
         if not isinstance(body, bytes):
             raise TypeError(f"'body' must be 'bytes', not '{type(body)}")

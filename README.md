@@ -116,7 +116,7 @@ writer = S3Writer(client)
 object_bytes = reader.read(bucket="my-bucket", key="Path/to/file", body=body)
 ```
 
-#### Reading/Writing Conbo Class
+#### Reading/Writing Combo Class
 The `S3ReaderWriter` behaves the same as the prior classes but supplies both commands in one class
 
 ### DuckDB
