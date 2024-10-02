@@ -100,7 +100,7 @@ class DuckDBS3Reader(DuckDBReader):
         self._connection.install_extension("aws")
         self._connection.load_extension("aws")
         self._connection.execute("""
-            CREATE SECRET (
+            CREATE SECRET aws_secret (
                 TYPE S3,
                 PROVIDER CREDENTIAL_CHAIN
             );
@@ -112,7 +112,7 @@ class DuckDBS3Reader(DuckDBReader):
         self._connection.load_extension("aws")
 
         self._connection.execute("""
-                CREATE SECRET (
+                CREATE SECRET aws_secret (
                     TYPE S3,
                     PROVIDER CREDENTIAL_CHAIN,
                     CHAIN 'sts'
@@ -128,7 +128,7 @@ class DuckDBS3Reader(DuckDBReader):
         """
 
         self._connection.execute(f"""
-            CREATE SECRET (
+            CREATE SECRET aws_secret (
                 TYPE S3,
                 ENDPOINT '{remove_protocol_from_url(endpoint_url)}',
                 URL_STYLE 'path',
