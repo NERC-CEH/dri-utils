@@ -31,7 +31,7 @@ class S3Base:
 class S3Reader(S3Base, ReaderInterface):
     """Class for handling file reads using the AWS S3 client"""
 
-    def read(self, bucket_name: str, s3_key: str) -> bytes:
+    def read(self, bucket_name: str, key: str) -> bytes:
         """
         Retrieves an object from an S3 bucket.
 
@@ -39,7 +39,7 @@ class S3Reader(S3Base, ReaderInterface):
 
         Args:
             bucket_name: The name of the S3 bucket.
-            s3_key: The key (path) of the object within the bucket.
+            key: The key (path) of the object within the bucket.
 
         Returns:
             bytes: raw bytes of the S3 object
@@ -48,10 +48,10 @@ class S3Reader(S3Base, ReaderInterface):
             Exception: If there's any error in retrieving or parsing the object.
         """
         try:
-            data = self._connection.get_object(Bucket=bucket_name, Key=s3_key)
+            data = self._connection.get_object(Bucket=bucket_name, Key=key)
             return data["Body"].read()
         except (RuntimeError, ClientError) as e:
-            logger.error(f"Failed to get {s3_key} from {bucket_name}")
+            logger.error(f"Failed to get {key} from {bucket_name}")
             logger.exception(e)
             raise e
 

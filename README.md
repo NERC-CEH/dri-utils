@@ -112,8 +112,7 @@ body = b"I'm a byte encoded document"
 writer = S3Writer(client)
 
 # Submit a file to AWS S3
-
-object_bytes = reader.read(bucket="my-bucket", key="Path/to/file", body=body)
+writer.wite(bucket="my-bucket", key="Path/to/file", body=body)
 ```
 
 #### Reading/Writing Combo Class
