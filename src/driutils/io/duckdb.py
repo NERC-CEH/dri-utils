@@ -96,7 +96,8 @@ class DuckDBS3Reader(DuckDBReader):
 
     def _auto_auth(self) -> None:
         """Automatically authenticates using environment variables"""
-
+        logger.info("Initalized DuckDB with 'auto' secret")
+        
         self._connection.install_extension("aws")
         self._connection.load_extension("aws")
         self._connection.execute("""
@@ -108,9 +109,11 @@ class DuckDBS3Reader(DuckDBReader):
 
     def _sts_auth(self) -> None:
         """Authenicates using assumed roles on AWS"""
+
+        logger.info("Initalized DuckDB with 'sts' secret")
+        
         self._connection.install_extension("aws")
         self._connection.load_extension("aws")
-
         self._connection.execute("""
                 CREATE SECRET aws_secret (
                     TYPE S3,
@@ -126,6 +129,8 @@ class DuckDBS3Reader(DuckDBReader):
             endpoint_url: Endpoint to the s3 provider.
             use_ssl: Flag for using ssl (https connections).
         """
+
+        logger.info("Initalized DuckDB with 'custom_endpoint' secret")
 
         self._connection.execute(f"""
             CREATE SECRET aws_secret (
