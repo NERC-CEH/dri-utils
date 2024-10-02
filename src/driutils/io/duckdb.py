@@ -97,7 +97,7 @@ class DuckDBS3Reader(DuckDBReader):
     def _auto_auth(self) -> None:
         """Automatically authenticates using environment variables"""
         logger.info("Initalized DuckDB with 'auto' secret")
-        
+
         self._connection.install_extension("aws")
         self._connection.load_extension("aws")
         self._connection.execute("""
@@ -111,7 +111,7 @@ class DuckDBS3Reader(DuckDBReader):
         """Authenicates using assumed roles on AWS"""
 
         logger.info("Initalized DuckDB with 'sts' secret")
-        
+
         self._connection.install_extension("aws")
         self._connection.load_extension("aws")
         self._connection.execute("""
