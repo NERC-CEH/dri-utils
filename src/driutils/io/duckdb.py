@@ -51,7 +51,9 @@ class DuckDBS3Reader(DuckDBReader):
     """Concrete Implementation of a DuckDB reader for reading
     data from an S3 endpoint"""
 
-    def __init__(self, auth_type: str, endpoint_url: Optional[str] = None, use_ssl: bool = True) -> None:
+    def __init__(
+        self, auth_type: str, endpoint_url: Optional[str] = None, use_ssl: bool = True, profiling: bool = False
+    ) -> None:
         """Initializes
 
         Args:
@@ -59,6 +61,7 @@ class DuckDBS3Reader(DuckDBReader):
             be one of ["auto", "sts", "custom_endpoint"]
             endpoint_url: Custom s3 endpoint
             use_ssl: Flag for using ssl (https connections).
+            profiling: Profile all duckdb queries. False by default.
         """
 
         super().__init__()
@@ -75,6 +78,9 @@ class DuckDBS3Reader(DuckDBReader):
         self._connection.execute("SET force_download = true;")
 
         self._authenticate(auth_type, endpoint_url, use_ssl)
+
+        if profiling:
+            self._connection.execute("SET enable_profiling = query_tree;")
 
     def _authenticate(self, method: str, endpoint_url: Optional[str] = None, use_ssl: bool = True) -> None:
         """Handles authentication selection
