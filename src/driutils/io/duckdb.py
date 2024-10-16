@@ -51,7 +51,9 @@ class DuckDBS3Reader(DuckDBReader):
     """Concrete Implementation of a DuckDB reader for reading
     data from an S3 endpoint"""
 
-    def __init__(self, auth_type: str, endpoint_url: Optional[str] = None, use_ssl: bool = True, profiling = False) -> None:
+    def __init__(
+        self, auth_type: str, endpoint_url: Optional[str] = None, use_ssl: bool = True, profiling: bool = False
+    ) -> None:
         """Initializes
 
         Args:
