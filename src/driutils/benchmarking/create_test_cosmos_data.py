@@ -38,7 +38,7 @@ def write_parquet_s3(bucket: str, key: str, data: pl.DataFrame) -> None:
     #   data.write_parquet(f)
 
 
-def build_test_precip_data(
+def build_test_cosmos_data(
     start_date: date, end_date: date, interval: timedelta, sites: list, schema: pl.Schema
 ) -> pl.DataFrame:
     """
@@ -186,7 +186,7 @@ if __name__ == "__main__":
     schema = df.schema
 
     # Build test data
-    test_data = build_test_precip_data(date(2024, 3, 28), date(2024, 3, 29), timedelta(minutes=1), sites, schema)
+    test_data = build_test_cosmos_data(date(2024, 3, 28), date(2024, 3, 29), timedelta(minutes=1), sites, schema)
 
     # Export test data based on required s3 structure
     export_test_data(bucket, test_data, "partitioned_date_site")
