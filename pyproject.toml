@@ -47,7 +47,7 @@ filterwarnings = [
 ]
 
 [tool.coverage.run]
-omit = ["*__init__.py", "**/logger.py"]
+omit = ["*__init__.py", "**/logger.py", "**/benchmarking*"]
 
 [tool.ruff]
 src = ["src", "tests"]
