@@ -12,6 +12,7 @@ dependencies = [
     "moto",
     "polars",
     "s3fs",
+    "setuptools",
     "tenacity",
 ]
 name = "dri-utils"
