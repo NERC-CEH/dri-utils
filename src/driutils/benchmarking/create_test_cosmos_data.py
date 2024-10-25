@@ -1,7 +1,6 @@
 """Script to generate test cosmos data.
 
-User defines which dataset to create test data for just after
-duckdb connection is created.
+Requires user inputs to be set.
 
 Currently used for benchmarking duckdb queries.
 
@@ -29,8 +28,17 @@ from datetime import date, timedelta
 import duckdb
 import polars as pl
 import s3fs
+from dateutil.rrule import YEARLY
 
-from driutils.datetime import steralize_date_range
+from driutils.datetime import chunk_date_range, steralize_date_range
+
+# User defined inputs
+DATASET = "PRECIP_1MIN_2024_LOOPED"
+INPUT_BUCKET = "ukceh-fdri-staging-timeseries-level-0"
+INPUT_KEY = f"cosmos/dataset={DATASET}/date=2024-01-01/*.parquet"
+OUTPUT_BUCKET = "ukceh-fdri"
+START_DATE = date(2015, 1, 1)
+END_DATE = date(2024, 12, 31)
 
 
 def write_parquet_s3(bucket: str, key: str, data: pl.DataFrame) -> None:
@@ -65,9 +73,6 @@ def build_test_cosmos_data(
     # Create empty dataframe with the required schema
     test_data = pl.DataFrame(schema=schema)
 
-    # Format dates
-    start_date, end_date = steralize_date_range(start_date, end_date)
-
     # Build datetime range series
     datetime_range = pl.datetime_range(start_date, end_date, interval, eager=True).alias("time")
 
@@ -87,8 +92,8 @@ def build_test_cosmos_data(
 
     # Update rest of the columns with random values
     # Remove cols already generated
-    schema.pop("time")
-    schema.pop("SITE_ID")
+    schema.pop("time", None)
+    schema.pop("SITE_ID", None)
 
     for column, dtype in schema.items():
         if isinstance(dtype, pl.Float64):
@@ -133,7 +138,7 @@ def export_test_data(bucket: str, dataset: str, data: pl.DataFrame, structure: s
         if structure == "date":
             day = date_obj.strftime("%Y-%m-%d")
             month = date_obj.strftime("%Y-%m")
-            key = f"cosmos/{dataset}/{month}/{day}.parquet"
+            key = f"cosmos-test/{dataset}/{month}/{day}.parquet"
 
             print(df)
 
@@ -141,7 +146,7 @@ def export_test_data(bucket: str, dataset: str, data: pl.DataFrame, structure: s
 
         if structure == "partitioned_date":
             day = date_obj.strftime("%Y-%m-%d")
-            key = f"cosmos/dataset={dataset}/date={day}/data.parquet"
+            key = f"cosmos-test/dataset={dataset}/date={day}/data.parquet"
 
             print(df)
 
@@ -152,7 +157,7 @@ def export_test_data(bucket: str, dataset: str, data: pl.DataFrame, structure: s
 
             for site, site_df in groups:
                 day = date_obj.strftime("%Y-%m-%d")
-                key = f"cosmos/dataset={dataset}/site={site}/date={day}/data.parquet"
+                key = f"cosmos-test/dataset={dataset}/site={site}/date={day}/data.parquet"
 
                 print(site_df)
 
@@ -167,7 +172,6 @@ if __name__ == "__main__":
         INSTALL httpfs;
         LOAD httpfs;
         SET force_download = true;
-        SET enable_profiling = query_tree;
     """)
 
     # Add s3 connection details
@@ -181,22 +185,23 @@ if __name__ == "__main__":
 
     # Load single file to get list of unique sites, and the dataset schema
     # for that particular dataset
-    
-    # User defined dataset
-    # --------------------
-    dataset = 'PRECIP_1MIN_2024_LOOPED'
-
-    bucket = "ukceh-fdri-staging-timeseries-level-0"
-    key = f"cosmos/dataset={dataset}/date=2024-01-01/*.parquet"
-
-    query = f"""SELECT * FROM read_parquet('s3://{bucket}/{key}', hive_partitioning=false)"""
+    query = f"""SELECT * FROM read_parquet('s3://{INPUT_BUCKET}/{INPUT_KEY}', hive_partitioning=false)"""
     df = conn.execute(query).pl()
 
     sites = set(df.get_column("SITE_ID"))
     schema = df.schema
 
-    # Build test data
-    test_data = build_test_cosmos_data(date(2024, 3, 28), date(2024, 3, 29), timedelta(minutes=1), sites, schema)
+    # Format dates
+    start_date, end_date = steralize_date_range(START_DATE, END_DATE)
 
-    # Export test data based on required s3 structure
-    export_test_data(bucket, dataset, test_data, "partitioned_date_site")
+    # Build and export test data
+    # Chunked into years for processing
+    year_chunks = chunk_date_range(start_date, end_date, chunk=YEARLY)
+
+    for years in year_chunks:
+        print(f"Building test data for {DATASET} between {years[0]} and {years[1]}")
+        test_data = build_test_cosmos_data(years[0], years[1], timedelta(minutes=1), sites, schema)
+
+        # Export test data based on required s3 structure
+        print(f"Exporting test data to {OUTPUT_BUCKET} between {years[0]} and {years[1]}")
+        export_test_data(OUTPUT_BUCKET, DATASET, test_data)

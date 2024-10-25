@@ -1,5 +1,7 @@
 from datetime import date, datetime
-from typing import Optional, Tuple, Union
+from typing import List, Optional, Tuple, Union
+
+from dateutil.rrule import rrule
 
 
 def validate_iso8601_duration(duration: str) -> bool:
@@ -62,3 +64,33 @@ def steralize_date_range(
         end_date = datetime.combine(end_date, datetime.max.time())
 
     return start_date, end_date
+
+
+def chunk_date_range(start_date: datetime, end_date: datetime, chunk: rrule) -> List[Tuple[datetime, datetime]]:
+    """Break date range into specified chunks of time.
+
+    Args:
+        start_date: start date
+        end_date: end date
+        chunk: time period to chunk the data into
+
+
+    Examples:
+        >>> start_date = datetime(2010, 5, 5, 0, 0, 0)
+        >>> end_date = datetime(2012, 12, 26, 0, 0, 0)
+        >>> print(chunk_date_range(start_date, end_date, YEARLY))
+        [(datetime.datetime(2010, 5, 5, 0, 0), datetime.datetime(2011, 5, 5, 0, 0)),
+        (datetime.datetime(2011, 5, 5, 0, 0), datetime.datetime(2012, 5, 5, 0, 0)),
+        (datetime.datetime(2012, 5, 5, 0, 0), datetime.datetime(2012, 12, 26, 0, 0))]
+
+    Returns:
+        A list of datetime tuples chunked by chunk."""
+    years = []
+    rule = rrule(freq=chunk, dtstart=start_date, until=end_date)
+
+    for x in rule.between(start_date, end_date, inc=True):
+        years.append(x)
+
+    years.append(end_date)
+
+    return list(zip(years, years[1:]))

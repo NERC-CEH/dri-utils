@@ -1,8 +1,9 @@
 import unittest
 from unittest.mock import patch
 from datetime import date, datetime
+from dateutil.rrule import YEARLY, MONTHLY
 
-from driutils.datetime import steralize_date_range, validate_iso8601_duration
+from driutils.datetime import steralize_date_range, validate_iso8601_duration, chunk_date_range
 
 class TestValidateISO8601Duration(unittest.TestCase):
     @patch("builtins.__import__")
@@ -107,3 +108,50 @@ class TestSteralizeDates(unittest.TestCase):
         expected_start = datetime.combine(start, datetime.min.time())
         result = steralize_date_range(expected_start, end)
         self.assertEqual(result, (expected_start, end))
+
+
+class TestChunkDateRange(unittest.TestCase):
+    """Test the chunk_date_range function."""
+    def test_only_one_chunk(self):
+        """Test that only one chunk returned containing start_date
+        and end_date when difference between start_date and end_date
+        is less than the chunk
+        """
+        start_date =  datetime(2010, 5, 5, 0, 0, 0)
+        end_date = datetime(2010, 6, 5, 0, 0, 0)
+        chunk = YEARLY
+
+        expected = chunk_date_range(start_date, end_date, chunk)
+        result = [(datetime(2010, 5, 5, 0, 0, 0), datetime(2010, 6, 5, 0, 0, 0))]
+
+        self.assertEqual(expected, result)
+
+    def test_multiple_chunks_year(self):
+        """Test that correct chunks generated."""
+        start_date =  datetime(2010, 5, 5, 0, 0, 0)
+        end_date = datetime(2014, 6, 5, 0, 0, 0)
+        chunk = YEARLY
+
+        expected = chunk_date_range(start_date, end_date, chunk)
+        result = [(datetime(2010, 5, 5, 0, 0, 0), datetime(2011, 5, 5, 0, 0, 0)),
+                  (datetime(2011, 5, 5, 0, 0, 0), datetime(2012, 5, 5, 0, 0, 0)),
+                  (datetime(2012, 5, 5, 0, 0, 0), datetime(2013, 5, 5, 0, 0, 0)),
+                  (datetime(2013, 5, 5, 0, 0, 0), datetime(2014, 5, 5, 0, 0, 0)),
+                  (datetime(2014, 5, 5, 0, 0, 0), datetime(2014, 6, 5, 0, 0, 0))]
+
+        self.assertEqual(expected, result)
+
+    def test_multiple_chunks_monthly(self):
+        """Test that correct chunks generated."""
+        start_date =  datetime(2010, 5, 5, 0, 0, 0)
+        end_date = datetime(2010, 9, 24, 0, 0, 0)
+        chunk = MONTHLY
+
+        expected = chunk_date_range(start_date, end_date, chunk)
+        result = [(datetime(2010, 5, 5, 0, 0, 0), datetime(2010, 6, 5, 0, 0, 0)),
+                  (datetime(2010, 6, 5, 0, 0, 0), datetime(2010, 7, 5, 0, 0, 0)),
+                  (datetime(2010, 7, 5, 0, 0, 0), datetime(2010, 8, 5, 0, 0, 0)),
+                  (datetime(2010, 8, 5, 0, 0, 0), datetime(2010, 9, 5, 0, 0, 0)),
+                  (datetime(2010, 9, 5, 0, 0, 0), datetime(2010, 9, 24, 0, 0, 0))]
+
+        self.assertEqual(expected, result)
