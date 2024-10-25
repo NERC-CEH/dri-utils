@@ -1,8 +1,11 @@
 """Script to generate test cosmos data.
 
+User defines which dataset to create test data for just after
+duckdb connection is created.
+
 Currently used for benchmarking duckdb queries.
 
-Data created per minute for user defined sites and date range.
+Data created per interval for user defined sites and date range.
 
 Can be exported into three different s3 bucket structures:
 
@@ -90,17 +93,17 @@ def build_test_cosmos_data(
     for column, dtype in schema.items():
         if isinstance(dtype, pl.Float64):
             col_values = pl.Series(column, [random.uniform(1, 50) for i in range(required_rows)])
+            col_values.round(3)
 
         if isinstance(dtype, pl.Int64):
             col_values = pl.Series(column, [random.randrange(1, 255, 1) for i in range(required_rows)])
-            col_values.round(3)
 
         test_data.replace_column(test_data.get_column_index(column), col_values)
 
     return test_data
 
 
-def export_test_data(bucket: str, data: pl.DataFrame, structure: str = "partitioned_date") -> None:
+def export_test_data(bucket: str, dataset: str, data: pl.DataFrame, structure: str = "partitioned_date") -> None:
     """Export the test data.
 
     Data can be exported to various s3 structures:
@@ -111,6 +114,7 @@ def export_test_data(bucket: str, data: pl.DataFrame, structure: str = "partitio
 
     Args:
         bucket: Name of the s3 bucket
+        dataset: dataset type which has been processed (precip, soilmet etc)
         data: Test data to be exported
         structure: s3 structure. Defaults to date_partitioned (current structure)
 
@@ -129,7 +133,7 @@ def export_test_data(bucket: str, data: pl.DataFrame, structure: str = "partitio
         if structure == "date":
             day = date_obj.strftime("%Y-%m-%d")
             month = date_obj.strftime("%Y-%m")
-            key = f"cosmos/dataset=PRECIP_1MIN_2024_LOOPED/{month}/{day}.parquet"
+            key = f"cosmos/{dataset}/{month}/{day}.parquet"
 
             print(df)
 
@@ -137,7 +141,7 @@ def export_test_data(bucket: str, data: pl.DataFrame, structure: str = "partitio
 
         if structure == "partitioned_date":
             day = date_obj.strftime("%Y-%m-%d")
-            key = f"cosmos/dataset=PRECIP_1MIN_2024_LOOPED/date={day}/data.parquet"
+            key = f"cosmos/dataset={dataset}/date={day}/data.parquet"
 
             print(df)
 
@@ -148,7 +152,7 @@ def export_test_data(bucket: str, data: pl.DataFrame, structure: str = "partitio
 
             for site, site_df in groups:
                 day = date_obj.strftime("%Y-%m-%d")
-                key = f"cosmos/dataset=PRECIP_1MIN_2024_LOOPED/site={site}/date={day}/data.parquet"
+                key = f"cosmos/dataset={dataset}/site={site}/date={day}/data.parquet"
 
                 print(site_df)
 
@@ -176,8 +180,14 @@ if __name__ == "__main__":
     """)
 
     # Load single file to get list of unique sites, and the dataset schema
+    # for that particular dataset
+    
+    # User defined dataset
+    # --------------------
+    dataset = 'PRECIP_1MIN_2024_LOOPED'
+
     bucket = "ukceh-fdri-staging-timeseries-level-0"
-    key = "cosmos/dataset=PRECIP_1MIN_2024_LOOPED/date=2024-01-01/*.parquet"
+    key = f"cosmos/dataset={dataset}/date=2024-01-01/*.parquet"
 
     query = f"""SELECT * FROM read_parquet('s3://{bucket}/{key}', hive_partitioning=false)"""
     df = conn.execute(query).pl()
@@ -189,4 +199,4 @@ if __name__ == "__main__":
     test_data = build_test_cosmos_data(date(2024, 3, 28), date(2024, 3, 29), timedelta(minutes=1), sites, schema)
 
     # Export test data based on required s3 structure
-    export_test_data(bucket, test_data, "partitioned_date_site")
+    export_test_data(bucket, dataset, test_data, "partitioned_date_site")
