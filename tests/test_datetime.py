@@ -121,8 +121,8 @@ class TestChunkDateRange(unittest.TestCase):
         end_date = datetime(2010, 6, 5, 0, 0, 0)
         chunk = YEARLY
 
-        expected = chunk_date_range(start_date, end_date, chunk)
-        result = [(datetime(2010, 5, 5, 0, 0, 0), datetime(2010, 6, 5, 0, 0, 0))]
+        result = chunk_date_range(start_date, end_date, chunk)
+        expected = [(datetime(2010, 5, 5, 0, 0, 0), datetime(2010, 6, 5, 0, 0, 0))]
 
         self.assertEqual(expected, result)
 
@@ -132,8 +132,8 @@ class TestChunkDateRange(unittest.TestCase):
         end_date = datetime(2014, 6, 5, 0, 0, 0)
         chunk = YEARLY
 
-        expected = chunk_date_range(start_date, end_date, chunk)
-        result = [(datetime(2010, 5, 5, 0, 0, 0), datetime(2011, 5, 5, 0, 0, 0)),
+        result = chunk_date_range(start_date, end_date, chunk)
+        expected = [(datetime(2010, 5, 5, 0, 0, 0), datetime(2011, 5, 5, 0, 0, 0)),
                   (datetime(2011, 5, 5, 0, 0, 0), datetime(2012, 5, 5, 0, 0, 0)),
                   (datetime(2012, 5, 5, 0, 0, 0), datetime(2013, 5, 5, 0, 0, 0)),
                   (datetime(2013, 5, 5, 0, 0, 0), datetime(2014, 5, 5, 0, 0, 0)),
@@ -147,8 +147,8 @@ class TestChunkDateRange(unittest.TestCase):
         end_date = datetime(2010, 9, 24, 0, 0, 0)
         chunk = MONTHLY
 
-        expected = chunk_date_range(start_date, end_date, chunk)
-        result = [(datetime(2010, 5, 5, 0, 0, 0), datetime(2010, 6, 5, 0, 0, 0)),
+        result = chunk_date_range(start_date, end_date, chunk)
+        expected = [(datetime(2010, 5, 5, 0, 0, 0), datetime(2010, 6, 5, 0, 0, 0)),
                   (datetime(2010, 6, 5, 0, 0, 0), datetime(2010, 7, 5, 0, 0, 0)),
                   (datetime(2010, 7, 5, 0, 0, 0), datetime(2010, 8, 5, 0, 0, 0)),
                   (datetime(2010, 8, 5, 0, 0, 0), datetime(2010, 9, 5, 0, 0, 0)),

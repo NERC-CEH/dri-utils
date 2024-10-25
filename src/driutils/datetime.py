@@ -85,12 +85,12 @@ def chunk_date_range(start_date: datetime, end_date: datetime, chunk: rrule) -> 
 
     Returns:
         A list of datetime tuples chunked by chunk."""
-    years = []
+    chunks = []
     rule = rrule(freq=chunk, dtstart=start_date, until=end_date)
 
     for x in rule.between(start_date, end_date, inc=True):
-        years.append(x)
+        chunks.append(x)
 
-    years.append(end_date)
+    chunks.append(end_date)
 
-    return list(zip(years, years[1:]))
+    return list(zip(chunks, chunks[1:]))
