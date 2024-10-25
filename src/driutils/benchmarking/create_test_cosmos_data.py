@@ -8,7 +8,7 @@ Can be exported into three different s3 bucket structures:
 
 1) Original format (no partitioning): /YYYY-MM/YYYY-MM-DD.parquet
 2) Current format (partitioned by date): /date=YYYY-MM-DD/data.parquet
-3) Proposed format (partitioned by date and site): /sire=site/date=YYYY-MM-DD/data.parquet
+3) Proposed format (partitioned by date and site): /site=site/date=YYYY-MM-DD/data.parquet
 
 As discussed, use case for loading from multiple dataset types
 (precip, soilmet) unlikely due to different resolutions.
@@ -106,8 +106,8 @@ def export_test_data(bucket: str, data: pl.DataFrame, structure: str = "partitio
     Data can be exported to various s3 structures:
 
     'date': cosmos/dataset_type/YYYY-MM/YYYY-MM-DD.parquet (original format)
-    'date_partitioned': cosmos/dataset_type/date=YYYY-MM-DD/data.parquet (current format)
-    'date_site_partitioned': cosmos/dataset_type/site=site/date=YYYY-MM-DD/data.parquet (proposed format)
+    'partitioned_date': cosmos/dataset_type/date=YYYY-MM-DD/data.parquet (current format)
+    'partitioned_date_site': cosmos/dataset_type/site=site/date=YYYY-MM-DD/data.parquet (proposed format)
 
     Args:
         bucket: Name of the s3 bucket
