@@ -32,10 +32,10 @@ from driutils.datetime import steralize_date_range
 
 def write_parquet_s3(bucket: str, key: str, data: pl.DataFrame) -> None:
     # Write parquet to s3
-    fs = s3fs.S3FileSystem()
-    destination = f"s3://{bucket}/{key}"
+    fs = s3fs.S3FileSystem()  # noqa
+    destination = f"s3://{bucket}/{key}"  # noqa
     # with fs.open(destination, mode="wb") as f:
-    #    data.write_parquet(f)
+    #   data.write_parquet(f)
 
 
 def build_test_precip_data(
