@@ -11,7 +11,6 @@ dependencies = [
     "mypy_boto3_s3",
     "moto",
     "polars",
-    "s3fs",
     "setuptools",
     "tenacity",
 ]
