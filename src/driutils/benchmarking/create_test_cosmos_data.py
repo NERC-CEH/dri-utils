@@ -41,14 +41,14 @@ DATASET = "PRECIP_1MIN_2024_LOOPED"
 INPUT_BUCKET = "ukceh-fdri-staging-timeseries-level-0"
 INPUT_KEY = f"cosmos/dataset={DATASET}/date=2024-01-01/2024-01-01.parquet"
 OUTPUT_BUCKET = "ukceh-fdri"
-START_DATE = date(2021, 7, 1)
+START_DATE = date(2017, 5, 1)
 END_DATE = date(2024, 12, 31)
 
 # How to structure the test data.
 # 'date': cosmos-test/structure/dataset_type/YYYY-MM/YYYY-MM-DD.parquet
 # 'partitioned_date': cosmos-test/structure/dataset=dataset_type/date=YYYY-MM-DD/data.parquet
 # 'partitioned_date_site': cosmos-test/structure/dataset=dataset_type/site=site/date=YYYY-MM-DD/data.parquet
-STRUCTURES = ["partitioned_date"]
+STRUCTURES = ["partitioned_date_site"]
 
 # Set up s3 client
 S3_CLIENT = boto3.client("s3")
