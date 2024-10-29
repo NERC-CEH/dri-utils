@@ -6,11 +6,14 @@ Currently used for benchmarking duckdb queries.
 
 Data created per interval for user defined sites and date range.
 
-Can be exported into three different s3 bucket structures:
+Can be exported into three different s3 bucket structures, all stored under the cosmos-test prefix:
 
-1) Original format (no partitioning): /YYYY-MM/YYYY-MM-DD.parquet
-2) Current format (partitioned by date): /date=YYYY-MM-DD/data.parquet
-3) Proposed format (partitioned by date and site): /site=site/date=YYYY-MM-DD/data.parquet
+(original format)
+'date': cosmos-test/structure/dataset_type/YYYY-MM/YYYY-MM-DD.parquet
+(current format)
+'partitioned_date': cosmos-test/structure/dataset=dataset_type/date=YYYY-MM-DD/data.parquet
+(proposed format)
+'partitioned_date_site': cosmos-test/structure/dataset=dataset_type/site=site/date=YYYY-MM-DD/data.parquet
 
 As discussed, use case for loading from multiple dataset types
 (precip, soilmet) unlikely due to different resolutions.
@@ -22,31 +25,45 @@ You need to have an aws-vault session running to connect to s3
 You (might) need extended permissions to write the test data to s3.
 """
 
+import io
 import random
 from datetime import date, timedelta
 
-import duckdb
+import boto3
 import polars as pl
-import s3fs
-from dateutil.rrule import YEARLY
+from botocore.exceptions import ClientError
+from dateutil.rrule import MONTHLY
 
 from driutils.datetime import chunk_date_range, steralize_date_range
 
 # User defined inputs
 DATASET = "PRECIP_1MIN_2024_LOOPED"
 INPUT_BUCKET = "ukceh-fdri-staging-timeseries-level-0"
-INPUT_KEY = f"cosmos/dataset={DATASET}/date=2024-01-01/*.parquet"
+INPUT_KEY = f"cosmos/dataset={DATASET}/date=2024-01-01/2024-01-01.parquet"
 OUTPUT_BUCKET = "ukceh-fdri"
-START_DATE = date(2015, 1, 1)
+START_DATE = date(2021, 7, 1)
 END_DATE = date(2024, 12, 31)
+
+# How to structure the test data.
+# 'date': cosmos-test/structure/dataset_type/YYYY-MM/YYYY-MM-DD.parquet
+# 'partitioned_date': cosmos-test/structure/dataset=dataset_type/date=YYYY-MM-DD/data.parquet
+# 'partitioned_date_site': cosmos-test/structure/dataset=dataset_type/site=site/date=YYYY-MM-DD/data.parquet
+STRUCTURES = ["partitioned_date"]
+
+# Set up s3 client
+S3_CLIENT = boto3.client("s3")
 
 
 def write_parquet_s3(bucket: str, key: str, data: pl.DataFrame) -> None:
     # Write parquet to s3
-    fs = s3fs.S3FileSystem()  # noqa
-    destination = f"s3://{bucket}/{key}"  # noqa
-    # with fs.open(destination, mode="wb") as f:
-    #   data.write_parquet(f)
+    buffer = io.BytesIO()
+    data.write_parquet(buffer)
+
+    try:
+        S3_CLIENT.put_object(Bucket=bucket, Key=key, Body=buffer.getvalue())
+    except (RuntimeError, ClientError) as e:
+        print(f"Failed to put {key} in {bucket}")
+        raise e
 
 
 def build_test_cosmos_data(
@@ -98,7 +115,7 @@ def build_test_cosmos_data(
     for column, dtype in schema.items():
         if isinstance(dtype, pl.Float64):
             col_values = pl.Series(column, [random.uniform(1, 50) for i in range(required_rows)])
-            col_values.round(3)
+            col_values = col_values.round(3)
 
         if isinstance(dtype, pl.Int64):
             col_values = pl.Series(column, [random.randrange(1, 255, 1) for i in range(required_rows)])
@@ -113,9 +130,12 @@ def export_test_data(bucket: str, dataset: str, data: pl.DataFrame, structure: s
 
     Data can be exported to various s3 structures:
 
-    'date': cosmos/dataset_type/YYYY-MM/YYYY-MM-DD.parquet (original format)
-    'partitioned_date': cosmos/dataset_type/date=YYYY-MM-DD/data.parquet (current format)
-    'partitioned_date_site': cosmos/dataset_type/site=site/date=YYYY-MM-DD/data.parquet (proposed format)
+    (original format)
+    'date': cosmos-test/structure/dataset_type/YYYY-MM/YYYY-MM-DD.parquet
+    (current format)
+    'partitioned_date': cosmos-test/structure/dataset=dataset_type/date=YYYY-MM-DD/data.parquet
+    (proposed format)
+    'partitioned_date_site': cosmos-test/structure/dataset=dataset_type/site=site/date=YYYY-MM-DD/data.parquet
 
     Args:
         bucket: Name of the s3 bucket
@@ -138,17 +158,13 @@ def export_test_data(bucket: str, dataset: str, data: pl.DataFrame, structure: s
         if structure == "date":
             day = date_obj.strftime("%Y-%m-%d")
             month = date_obj.strftime("%Y-%m")
-            key = f"cosmos-test/{dataset}/{month}/{day}.parquet"
-
-            print(df)
+            key = f"cosmos-test/{structure}/{dataset}/{month}/{day}.parquet"
 
             write_parquet_s3(bucket, key, df)
 
         if structure == "partitioned_date":
             day = date_obj.strftime("%Y-%m-%d")
-            key = f"cosmos-test/dataset={dataset}/date={day}/data.parquet"
-
-            print(df)
+            key = f"cosmos-test/{structure}/dataset={dataset}/date={day}/data.parquet"
 
             write_parquet_s3(bucket, key, df)
 
@@ -157,36 +173,19 @@ def export_test_data(bucket: str, dataset: str, data: pl.DataFrame, structure: s
 
             for site, site_df in groups:
                 day = date_obj.strftime("%Y-%m-%d")
-                key = f"cosmos-test/dataset={dataset}/site={site}/date={day}/data.parquet"
-
-                print(site_df)
+                key = f"cosmos-test/{structure}/dataset={dataset}/site={site}/date={day}/data.parquet"
 
                 write_parquet_s3(bucket, key, site_df)
 
 
 if __name__ == "__main__":
-    # Setup basic duckdb connection
-    conn = duckdb.connect()
-
-    conn.execute("""
-        INSTALL httpfs;
-        LOAD httpfs;
-        SET force_download = true;
-    """)
-
-    # Add s3 connection details
-    conn.execute("""
-        CREATE SECRET aws_secret (
-            TYPE S3,
-            PROVIDER CREDENTIAL_CHAIN,
-            CHAIN 'sts'
-        );
-    """)
-
-    # Load single file to get list of unique sites, and the dataset schema
-    # for that particular dataset
-    query = f"""SELECT * FROM read_parquet('s3://{INPUT_BUCKET}/{INPUT_KEY}', hive_partitioning=false)"""
-    df = conn.execute(query).pl()
+    # Get sample object for required dataset to extract the required schema and sites
+    try:
+        data = S3_CLIENT.get_object(Bucket=INPUT_BUCKET, Key=INPUT_KEY)
+        df = pl.read_parquet(data["Body"].read())
+    except (RuntimeError, ClientError) as e:
+        print(f"Failed to get {INPUT_KEY} from {INPUT_BUCKET}")
+        raise e
 
     sites = set(df.get_column("SITE_ID"))
     schema = df.schema
@@ -196,12 +195,15 @@ if __name__ == "__main__":
 
     # Build and export test data
     # Chunked into years for processing
-    year_chunks = chunk_date_range(start_date, end_date, chunk=YEARLY)
+    year_chunks = chunk_date_range(start_date, end_date, chunk=MONTHLY)
 
     for years in year_chunks:
         print(f"Building test data for {DATASET} between {years[0]} and {years[1]}")
         test_data = build_test_cosmos_data(years[0], years[1], timedelta(minutes=1), sites, schema)
 
         # Export test data based on required s3 structure
-        print(f"Exporting test data to {OUTPUT_BUCKET} between {years[0]} and {years[1]}")
-        export_test_data(OUTPUT_BUCKET, DATASET, test_data)
+        for structure in STRUCTURES:
+            print(
+                f"Exporting test data to {OUTPUT_BUCKET} between {years[0]} and {years[1]} with structure '{structure}'"
+            )
+            export_test_data(OUTPUT_BUCKET, DATASET, test_data, structure)
