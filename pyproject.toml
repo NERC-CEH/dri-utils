@@ -11,6 +11,7 @@ dependencies = [
     "mypy_boto3_s3",
     "moto",
     "polars",
+    "setuptools",
     "tenacity",
 ]
 name = "dri-utils"
@@ -45,7 +46,7 @@ filterwarnings = [
 ]
 
 [tool.coverage.run]
-omit = ["*__init__.py", "**/logger.py"]
+omit = ["*__init__.py", "**/logger.py", "**/benchmarking*"]
 
 [tool.ruff]
 src = ["src", "tests"]
