@@ -9,7 +9,7 @@ Two different bucket structures have been created for testing.
 
 User can select which strcuture to query.
 
-Each query profile is saved to a json.
+Each query profile is saved to ./profile.json. Final metrics are written to csv.
 """
 
 import json
@@ -22,9 +22,14 @@ import polars as pl
 BUCKET = "ukceh-fdri"
 PREFIX = "cosmos-test"
 DATASET = "PRECIP_1MIN_2024_LOOPED"
-PROFILE_OUTPUT = "profile.json"
+OUTPUT_PROFILE = "profile.json"
+OUTPUT_CSV = "metrics.csv"
+# Select columns to filter. List to select some, empty to select all.
+COLUMNS = ["SITE_ID", "time", "P_INTENSITY_RT"]
 
+# Derived constants
 BASE_BUCKET_PATH = f"s3://{BUCKET}/{PREFIX}/partitioned_date_site"
+COLUMNS_SQL = ", ".join(COLUMNS) if isinstance(COLUMNS, list) else "*"
 
 
 def extract_metrics(profile: str | os.PathLike) -> pl.DataFrame:
@@ -34,7 +39,7 @@ def extract_metrics(profile: str | os.PathLike) -> pl.DataFrame:
         profile: the saved query profile json.
 
     Returns:
-        polars dataframes with required proifle metrics.
+        polars dataframes with required profile metrics.
     """
 
     with open(profile) as f:
@@ -47,58 +52,108 @@ def extract_metrics(profile: str | os.PathLike) -> pl.DataFrame:
     metrics["result_set_size_(Mb)"] = p["result_set_size"] / 1048576
     metrics["rows_scanned"] = p["cumulative_rows_scanned"]
     metrics["cpu_time_(s)"] = p["cpu_time"]
-    metrics["read_parquet_operator_time_(s)"] = p["children"][0]["children"][0]["operator_timing"]
+    # metrics["read_parquet_operator_time_(s)"] = p["children"][0]["children"][0]["operator_timing"]
 
     return pl.DataFrame(metrics)
 
 
 def query_one_site_one_date(base_path, dataset):
     # Test a very small return with partition filter
-    return f"""SELECT * FROM read_parquet('{base_path}/dataset={dataset}/*/*/*.parquet', hive_partitioning=true)
-            WHERE site='BUNNY' AND date='2019-01-27'"""
+    return f"""SELECT {COLUMNS_SQL} FROM read_parquet('{base_path}/dataset={dataset}/*/*/*.parquet')
+            WHERE date='2017-09-27' AND site='BUNNY'"""
 
 
-def query_multi_dates_using_conditionals(base_path, dataset):
+def query_one_site(base_path, dataset):
+    # Test a very small return without partition filter
+    return f"""SELECT {COLUMNS_SQL} FROM read_parquet('{base_path}/dataset={dataset}/*/*/*.parquet')
+            WHERE site='BUNNY'"""
+
+
+def query_multi_dates_using_conditionals_month(base_path, dataset):
     # Test larger and more complex query parameters
     # Dates are filtered using conditionals
     return f"""
-        SELECT *
-        FROM read_parquet('{base_path}/dataset={dataset}/*/*/*.parquet', hive_partitioning=true)
-        WHERE date >= '2015-01-01' AND date <= '2015-01-31'
+        SELECT {COLUMNS_SQL}
+        FROM read_parquet('{base_path}/dataset={dataset}/*/*/*.parquet')
+        WHERE date >= '2019-01-01' AND date <= '2019-01-31'
     """
 
 
-def query_multi_sites_and_multi_dates_using_conditionals(base_path, dataset):
+def query_multi_dates_using_conditionals_year(base_path, dataset):
+    # Test larger and more complex query parameters
+    # Dates are filtered using conditionals
+    return f"""
+        SELECT {COLUMNS_SQL}
+        FROM read_parquet('{base_path}/dataset={dataset}/*/*/*.parquet')
+        WHERE date >= '2019-01-01' AND date <= '2019-12-31'
+    """
+
+
+def query_multi_sites_and_multi_dates_using_conditionals_month(base_path, dataset):
     # Test larger and more complex query parameters
     # Dates are filtered using conditionals
     # Non partitioned column used
     return f"""
-        SELECT *
-        FROM read_parquet('{base_path}/dataset={dataset}/*/*/*.parquet', hive_partitioning=true)
-        WHERE date >= '2015-01-01' AND date <= '2015-12-31'
+        SELECT {COLUMNS_SQL}
+        FROM read_parquet('{base_path}/dataset={dataset}/*/*/*.parquet')
+        WHERE date >= '2019-01-01' AND date <= '2019-01-31'
         AND site IN ('BUNNY', 'ALIC1')
     """
 
 
-def query_multi_dates_using_hive_types(base_path, dataset):
+def query_multi_sites_and_multi_dates_using_conditionals_year(base_path, dataset):
     # Test larger and more complex query parameters
-    # Dates are hive types and filtered using BETWEEN
+    # Dates are filtered using conditionals
+    # Non partitioned column used
     return f"""
-        SELECT *
-        FROM read_parquet('{base_path}/dataset={dataset}/*/*/*.parquet', hive_partitioning=true, hive_types = {{date: DATE}})
-        WHERE date BETWEEN '2015-01-01' AND '2015-01-31'
+        SELECT {COLUMNS_SQL}
+        FROM read_parquet('{base_path}/dataset={dataset}/*/*/*.parquet')
+        WHERE date >= '2019-01-01' AND date <= '2019-12-31'
+        AND site IN ('BUNNY', 'ALIC1')
     """
 
 
-def query_multi_sites_and_multi_dates_using_hive_types(base_path, dataset):
+def query_multi_dates_using_hive_types_month(base_path, dataset):
+    # Test larger and more complex query parameters
+    # Dates are hive types and filtered using BETWEEN
+    return f"""
+        SELECT {COLUMNS_SQL}
+        FROM read_parquet('{base_path}/dataset={dataset}/*/*/*.parquet', hive_types = {{date: DATE}})
+        WHERE date BETWEEN '2019-01-01' AND '2019-01-31'
+    """
+
+
+def query_multi_dates_using_hive_types_year(base_path, dataset):
+    # Test larger and more complex query parameters
+    # Dates are hive types and filtered using BETWEEN
+    return f"""
+        SELECT {COLUMNS_SQL}
+        FROM read_parquet('{base_path}/dataset={dataset}/*/*/*.parquet', hive_types = {{date: DATE}})
+        WHERE date BETWEEN '2019-01-01' AND '2019-12-31'
+    """
+
+
+def query_multi_sites_and_multi_dates_using_hive_types_month(base_path, dataset):
     # Test larger and more complex query parameters
     # Dates are hive types and filtered using BETWEEN
     # Non partitioned column used
     return f"""
-        EXPLAIN ANALYSE SELECT *
-        FROM read_parquet('{base_path}/dataset={dataset}/*/*/*.parquet', hive_partitioning=true, hive_types = {{date: DATE}})
-        WHERE date BETWEEN '2015-01-01' AND '2015-01-31'
+        SELECT {COLUMNS_SQL}
+        FROM read_parquet('{base_path}/dataset={dataset}/*/*/*.parquet', hive_types = {{date: DATE}})
+        WHERE date BETWEEN '2019-01-01' AND '2019-01-31'
         AND site IN ('BUNNY', 'ALIC1')
+    """
+
+
+def query_multi_sites_and_multi_dates_using_hive_types_year(base_path, dataset):
+    # Test larger and more complex query parameters
+    # Dates are hive types and filtered using BETWEEN
+    # Non partitioned column used
+    return f"""
+        SELECT {COLUMNS_SQL}
+        FROM read_parquet('{base_path}/dataset={dataset}/*/*/*.parquet', hive_types = {{date: DATE}})
+        WHERE date BETWEEN '2019-01-01' AND '2019-12-31'
+        AND site='BUNNY'
     """
 
 
@@ -124,26 +179,31 @@ if __name__ == "__main__":
     """)
 
     queries = [
-        query_one_site_one_date(BASE_BUCKET_PATH, DATASET),
-        # query_multi_dates_using_conditionals(BASE_BUCKET_PATH, DATASET),
-        # query_multi_sites_and_multi_dates_using_conditionals(BASE_BUCKET_PATH, DATASET),
-        query_multi_dates_using_hive_types(BASE_BUCKET_PATH, DATASET),
-        query_multi_sites_and_multi_dates_using_hive_types(BASE_BUCKET_PATH, DATASET),
+        # query_one_site(BASE_BUCKET_PATH, DATASET),
+        # query_one_site_one_date(BASE_BUCKET_PATH, DATASET),
+        # query_multi_dates_using_conditionals_month(BASE_BUCKET_PATH, DATASET),
+        # query_multi_dates_using_conditionals_year(BASE_BUCKET_PATH, DATASET),
+        # query_multi_sites_and_multi_dates_using_conditionals_month(BASE_BUCKET_PATH, DATASET),
+        # query_multi_sites_and_multi_dates_using_conditionals_year(BASE_BUCKET_PATH, DATASET),
+        # query_multi_dates_using_hive_types_month(BASE_BUCKET_PATH, DATASET),
+        # query_multi_dates_using_hive_types_year(BASE_BUCKET_PATH, DATASET),
+        # query_multi_sites_and_multi_dates_using_hive_types_month(BASE_BUCKET_PATH, DATASET),
+        query_multi_sites_and_multi_dates_using_hive_types_year(BASE_BUCKET_PATH, DATASET)
     ]
 
-    # Create empty dataframe to sotre the results
+    # Create empty dataframe to store the results
     data = pl.DataFrame()
 
     for query in queries:
+        print(f"Running {query}\n")
+
         # Query profile is saved to ./profile.json
-        print(f"Running \n{query}\n")
         conn.execute(query).pl()
 
         # Extract whats need from the profiler
-        print(f"Extracting results from {PROFILE_OUTPUT}")
-        df = extract_metrics(profile=PROFILE_OUTPUT)
+        df = extract_metrics(profile=OUTPUT_PROFILE)
+        print(df.glimpse())
 
         data = pl.concat([data, df], how="diagonal")
 
-    print(data.glimpse())
-    print(data)
+    data.write_csv(OUTPUT_CSV)
