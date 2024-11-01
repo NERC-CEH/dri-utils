@@ -151,20 +151,19 @@ def query_multi_sites_and_multi_dates_using_hive_types_year(base_path, dataset):
     # Non partitioned column used
     return f"""
         SELECT {COLUMNS_SQL}
-        FROM read_parquet('{base_path}/dataset={dataset}/*/*/*.parquet', hive_types = {{date: DATE}})
-        WHERE date BETWEEN '2019-01-01' AND '2019-12-31'
-        AND site='BUNNY'
+        FROM read_parquet('{base_path}/dataset={dataset}/site=BUNNY/date=*/data.parquet')
+        WHERE date BETWEEN '2015-01-01' AND '2015-12-31'
     """
 
 
 if __name__ == "__main__":
     # Setup basic duckdb connection
-    conn = duckdb.connect()
+    conn = duckdb.connect(config = { 'threads': 75 })
 
     conn.execute("""
         INSTALL httpfs;
         LOAD httpfs;
-        SET force_download = true;
+        SET force_download = false;
         SET enable_profiling = json;
         SET profiling_output = 'profile.json';
     """)
@@ -198,7 +197,8 @@ if __name__ == "__main__":
         print(f"Running {query}\n")
 
         # Query profile is saved to ./profile.json
-        conn.execute(query).pl()
+        new_df = conn.sql(query).pl()
+        new_df.write_csv('./test.csv')
 
         # Extract whats need from the profiler
         df = extract_metrics(profile=OUTPUT_PROFILE)
@@ -206,4 +206,5 @@ if __name__ == "__main__":
 
         data = pl.concat([data, df], how="diagonal")
 
+    conn.close()
     data.write_csv(OUTPUT_CSV)
