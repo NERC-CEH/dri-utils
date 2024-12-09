@@ -31,7 +31,7 @@ class LogFormatter(logging.Formatter):
         level = record.levelname
         logger_name = record.name
 
-        log_entry = f"{timestamp} - {logger_name} - {level} - "
+        log_entry = f"{timestamp} - {level} - {logger_name} - "
 
         if record.exc_info:
             tb = self.formatException(record.exc_info)
