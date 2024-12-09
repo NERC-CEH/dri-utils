@@ -3,7 +3,10 @@
 import logging
 import traceback
 from datetime import datetime
-from typing import Tuple, Type
+from types import TracebackType
+from typing import TypeAlias
+
+SysExcInfoType: TypeAlias = tuple[type[BaseException], BaseException, TracebackType | None] | tuple[None, None, None]
 
 
 class LogFormatter(logging.Formatter):
@@ -28,7 +31,7 @@ class LogFormatter(logging.Formatter):
         level = record.levelname
         logger_name = record.name
 
-        log_entry = f"{timestamp} - {level} - {logger_name} - "
+        log_entry = f"{timestamp} - {logger_name} - {level} - "
 
         if record.exc_info:
             tb = self.formatException(record.exc_info)
@@ -40,7 +43,7 @@ class LogFormatter(logging.Formatter):
 
         return log_entry
 
-    def formatTime(self, record: logging.LogRecord) -> datetime:
+    def formatTime(self, record: logging.LogRecord, datefmt: str | None = None) -> str:
         """
         Format the creation time of the specified LogRecord.
 
@@ -50,9 +53,9 @@ class LogFormatter(logging.Formatter):
         Returns:
             datetime: A datetime object representing the record's creation time.
         """
-        return datetime.fromtimestamp(record.created)
+        return str(datetime.fromtimestamp(record.created))
 
-    def formatException(self, exc_info: Tuple[Type[BaseException], BaseException]) -> str:
+    def formatException(self, ei: SysExcInfoType) -> str:
         """
         Format the specified exception information as a string.
 
@@ -62,7 +65,7 @@ class LogFormatter(logging.Formatter):
         Returns:
             str: A string representation of the exception traceback.
         """
-        return "".join(traceback.format_exception(*exc_info)).strip()
+        return "".join(traceback.format_exception(*ei)).strip()
 
 
 def setup_logging(level: int = logging.INFO) -> None:
