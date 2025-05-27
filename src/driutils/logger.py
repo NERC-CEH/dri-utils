@@ -68,7 +68,7 @@ class LogFormatter(logging.Formatter):
         return "".join(traceback.format_exception(*ei)).strip()
 
 
-def setup_logging(level: int = logging.INFO) -> None:
+def setup_logging(level: int = logging.INFO, log_filepath: str = None) -> None:
     """
     Set up basic logging configuration with a custom formatter.
 
@@ -78,14 +78,23 @@ def setup_logging(level: int = logging.INFO) -> None:
 
     Args:
         level: The logging level to set for the root logger. Defaults to logging.INFO.
+        log_filepath: Filepath for saving logs
 
     Returns:
         None
     """
+    handlers = []
     root_logger = logging.getLogger()
     root_logger.setLevel(level)
     handler = logging.StreamHandler()
     formatter = LogFormatter()
     handler.setFormatter(formatter)
+    handlers.append[handler]
 
-    root_logger.handlers = [handler]
+    if log_filepath:
+        file_handler = logging.FileHandler(log_filepath)
+        file_handler.setLevel(level)
+        file_handler.setFormatter(formatter)
+        handlers.append[file_handler]
+
+    root_logger.handlers = handlers
