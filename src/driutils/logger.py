@@ -89,12 +89,12 @@ def setup_logging(level: int = logging.INFO, log_filepath: str = None) -> None:
     handler = logging.StreamHandler()
     formatter = LogFormatter()
     handler.setFormatter(formatter)
-    handlers.append[handler]
+    handlers.append(handler)
 
     if log_filepath:
         file_handler = logging.FileHandler(log_filepath)
         file_handler.setLevel(level)
         file_handler.setFormatter(formatter)
-        handlers.append[file_handler]
+        handlers.append(file_handler)
 
     root_logger.handlers = handlers
