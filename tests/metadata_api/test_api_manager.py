@@ -5,7 +5,7 @@ from unittest.mock import MagicMock, patch
 from httpx import HTTPError, HTTPStatusError, Request, Response, TimeoutException
 
 from driutils.metadata_api.api_manager import MetadataAPIManager
-from tests.utils.mock_metadata_api import MockMetadataAPI
+from driutils.testing_utils.mock_metadata_api import MockMetadataAPI
 
 
 class TestMetadataApiManager(IsolatedAsyncioTestCase):
