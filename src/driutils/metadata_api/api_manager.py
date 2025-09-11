@@ -94,7 +94,7 @@ class MetadataAPIManager:
 
         params = self._update_params(params, param_key="_limit", param_value=page_size)
         offset = 0
-        current_items = response_items
+        current_items = [response_items]
 
         while current_items:
             offset += page_size
