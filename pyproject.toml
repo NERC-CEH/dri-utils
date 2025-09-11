@@ -32,8 +32,7 @@ version = { attr = "driutils.__version__" }
 
 
 [tool.setuptools.packages.find]
-where = ["src"]
-include = ["driutils*", "tests*"]
+where = ["src", "tests"]
 
 [tool.pytest.ini_options]
 
