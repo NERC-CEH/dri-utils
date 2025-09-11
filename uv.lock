@@ -304,6 +304,7 @@ dependencies = [
     { name = "boto3" },
     { name = "duckdb" },
     { name = "httpx" },
+    { name = "isodate" },
     { name = "moto" },
     { name = "mypy-boto3-s3" },
     { name = "polars" },
@@ -312,14 +313,7 @@ dependencies = [
 ]
 
 [package.optional-dependencies]
-all = [
-    { name = "isodate" },
-]
-datetime = [
-    { name = "isodate" },
-]
 dev = [
-    { name = "isodate" },
     { name = "parameterized" },
     { name = "pytest" },
     { name = "pytest-cov" },
@@ -346,11 +340,10 @@ test = [
 requires-dist = [
     { name = "autosemver" },
     { name = "boto3" },
-    { name = "dri-utils", extras = ["all", "docs", "lint", "test"], marker = "extra == 'dev'" },
-    { name = "dri-utils", extras = ["datetime"], marker = "extra == 'all'" },
+    { name = "dri-utils", extras = ["docs", "lint", "test"], marker = "extra == 'dev'" },
     { name = "duckdb" },
     { name = "httpx" },
-    { name = "isodate", marker = "extra == 'datetime'" },
+    { name = "isodate" },
     { name = "moto" },
     { name = "mypy-boto3-s3" },
     { name = "parameterized", marker = "extra == 'test'" },
@@ -364,7 +357,7 @@ requires-dist = [
     { name = "sphinx-rtd-theme", marker = "extra == 'docs'" },
     { name = "tenacity" },
 ]
-provides-extras = ["test", "docs", "lint", "datetime", "all", "dev"]
+provides-extras = ["test", "docs", "lint", "dev"]
 
 [[package]]
 name = "duckdb"

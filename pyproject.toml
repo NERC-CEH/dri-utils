@@ -9,6 +9,7 @@ dependencies = [
     "duckdb",
     "boto3",
     "httpx",
+    "isodate",
     "mypy_boto3_s3",
     "moto",
     "polars",
@@ -24,9 +25,7 @@ description = "A minimal setup for a template package."
 test = ["pytest", "pytest-cov", "parameterized"]
 docs = ["sphinx", "sphinx-copybutton", "sphinx-rtd-theme"]
 lint = ["ruff"]
-datetime = ["isodate"]
-all = ["dri-utils[datetime]"]
-dev = ["dri-utils[all,test,docs,lint]"]
+dev = ["dri-utils[test,docs,lint]"]
 
 [tool.setuptools.dynamic]
 version = { attr = "driutils.__version__" }
@@ -34,7 +33,7 @@ version = { attr = "driutils.__version__" }
 
 [tool.setuptools.packages.find]
 where = ["src"]
-include = ["driutils*"]
+include = ["driutils*", "tests*"]
 
 [tool.pytest.ini_options]
 
