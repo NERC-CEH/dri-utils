@@ -87,10 +87,6 @@ class MetadataAPIManager:
         if params is None:
             params = {}
 
-        # Set the offset to a ridiculously high number just to have something to loop over, theoretically this maximum
-        # offset should never be reached.
-        # maximum_offset = 100000000000
-
         # The initial response meta value can be used for the final response. The core contents (excluding limit and
         # offset) should be the same across all pages.
         response_meta = initial_response["meta"]
