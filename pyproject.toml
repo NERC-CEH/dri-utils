@@ -8,6 +8,7 @@ dependencies = [
     "autosemver",
     "duckdb",
     "boto3",
+    "httpx",
     "mypy_boto3_s3",
     "moto",
     "polars",
