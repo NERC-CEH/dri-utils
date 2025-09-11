@@ -1,6 +1,7 @@
 from datetime import date, datetime
 from typing import List, Optional, Tuple, Union
 
+import isodate
 from dateutil.rrule import rrule
 
 
@@ -13,17 +14,6 @@ def validate_iso8601_duration(duration: str) -> bool:
     Returns:
         True if the duration is valid, False otherwise.
     """
-
-    try:
-        import isodate
-    except ModuleNotFoundError:
-        raise ModuleNotFoundError(
-            (
-                "Datetime utilities were not installed. Reinstall with",
-                " 'pip install driutils[datetime]' to use isodate functionality",
-            )
-        )
-
     try:
         isodate.parse_duration(duration)
         return True

@@ -6,14 +6,6 @@ from dateutil.rrule import YEARLY, MONTHLY
 from driutils.datetime import steralize_date_range, validate_iso8601_duration, chunk_date_range
 
 class TestValidateISO8601Duration(unittest.TestCase):
-    @patch("builtins.__import__")
-    def test_error_if_isodate_not_installed(self, mock):
-        """Tests that isodate is installed"""
-
-        mock.side_effect = ModuleNotFoundError
-        with self.assertRaises(ModuleNotFoundError):
-            duration = "P1Y2M3DT4H5M6S"
-            validate_iso8601_duration(duration)
 
     def test_valid_duration_full_format(self):
         """Test a valid ISO 8601 duration in full format."""
