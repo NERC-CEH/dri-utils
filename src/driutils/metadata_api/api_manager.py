@@ -117,8 +117,11 @@ class MetadataAPIManager:
 
         return params
 
-    async def fetch_sites(self) -> Dict[str, Any]:
+    async def fetch_sites(self, params: list[tuple[str, str]] | dict[str, str] | None = None) -> Dict[str, Any]:
         """Fetch all sites from the specified network.
+
+        Args:
+            params: Additonal API parameters. Defaults to None.
 
         Returns:
             JSON response containing site information for the network.
@@ -126,7 +129,7 @@ class MetadataAPIManager:
         Raises:
             HTTPError: If the API request fails.
         """
-        response = await self._make_paginated_api_call(f"{self.host}/id/network/{self.network}")
+        response = await self._make_paginated_api_call(f"{self.host}/id/network/{self.network}", params)
         return response
 
     async def fetch_site_metadata(self, site_id: str) -> Dict[str, Any]:

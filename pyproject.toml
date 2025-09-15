@@ -12,6 +12,7 @@ dependencies = [
     "isodate",
     "mypy_boto3_s3",
     "moto",
+    "parameterized",
     "polars",
     "setuptools",
     "tenacity",
