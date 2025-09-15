@@ -22,7 +22,9 @@ def check_single_list_item(data: List) -> Any:
         if num_items != 1:
             raise ValueError(f"Single list check failed. {num_items} items found: {data}")
         data = data[0]
-    return data
+        return data
+    else:
+        raise TypeError("Input parameter must be a list.")
 
 
 def get_property(key: str, prop: Dict[str, Any] | None) -> Any:

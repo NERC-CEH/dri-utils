@@ -3,7 +3,7 @@ from unittest import TestCase
 
 from parameterized import parameterized
 
-from driutils.metadata_api.utils import URI_ID_EXTRACT_REGEX, SITE_ID_EXTRACT_REGEX, get_property
+from driutils.metadata_api.utils import URI_ID_EXTRACT_REGEX, SITE_ID_EXTRACT_REGEX, get_property, check_single_list_item
 
 
 class TestUriIdExtractRegex(TestCase):
@@ -112,3 +112,28 @@ class TestGetProperty(TestCase):
         expected = 0
         result = get_property(key, {key: expected})
         self.assertEqual(result, expected)
+
+class TestCheckSingleListItem(TestCase):
+    """Test the check_single_list_item method"""
+
+    def test_success(self):
+        """Test method returns the only item from a list"""
+        input = ["test"]
+        expected = "test"
+
+        result = check_single_list_item(input)
+
+        self.assertEqual(result, expected)
+    
+
+
+    @parameterized.expand(
+        [
+            ("value_error", ["test1", "test2"], ValueError),
+            ("type_error", {"test"}, TypeError)
+        ]
+    )
+    def test_error(self, _, input, error):
+        """Test correct errors are raised."""
+        with self.assertRaises(error):
+            check_single_list_item(input)
