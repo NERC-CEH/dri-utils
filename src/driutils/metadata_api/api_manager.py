@@ -120,6 +120,9 @@ class MetadataAPIManager:
     async def fetch_sites(self, params: list[tuple[str, str]] | dict[str, str] | None = None) -> Dict[str, Any]:
         """Fetch all sites from the specified network.
 
+        Args:
+            params: Additonal API parameters. Defaults to None.
+
         Returns:
             JSON response containing site information for the network.
 
