@@ -11,4 +11,5 @@ jobs:
   test-python:
     uses: NERC-CEH/dri-cicd/.github/workflows/test-python.yml@main
     with:
+      use_uv: true
       optional_dependencies: "[lint,test,all]"
