@@ -76,4 +76,4 @@ select = [
 strict = true
 
 [tool.ruff.lint.flake8-builtins]
-allowed-modules = ["io"]
+builtins-ignorelist = ["io"]

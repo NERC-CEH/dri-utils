@@ -1,6 +1,6 @@
 import json
 from unittest.async_case import IsolatedAsyncioTestCase
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import Mock, patch
 
 from httpx import HTTPError, HTTPStatusError, Request, Response, TimeoutException
 
