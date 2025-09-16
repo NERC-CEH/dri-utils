@@ -3,7 +3,12 @@ from unittest import TestCase
 
 from parameterized import parameterized
 
-from driutils.metadata_api.utils import URI_ID_EXTRACT_REGEX, SITE_ID_EXTRACT_REGEX, get_property, check_single_list_item
+from driutils.metadata_api.utils import (
+    SITE_ID_EXTRACT_REGEX,
+    URI_ID_EXTRACT_REGEX,
+    check_single_list_item,
+    get_property,
+)
 
 
 class TestUriIdExtractRegex(TestCase):
@@ -18,7 +23,7 @@ class TestUriIdExtractRegex(TestCase):
             ("with_numbers", "http://example.com/parameter/g1", "g1"),
         ]
     )
-    def test_parsing_success(self, _, string, expected):
+    def test_parsing_success(self, _: str, string: str, expected: str) -> None:
         """Test that validation passes when string format meets the regex."""
         result = re.match(URI_ID_EXTRACT_REGEX, string).group(1)
         self.assertEqual(result, expected)
@@ -31,7 +36,7 @@ class TestUriIdExtractRegex(TestCase):
             ("special_character", "http://example.com/parameter/test&value"),
         ]
     )
-    def test_parsing_none(self, _, string):
+    def test_parsing_none(self, _: str, string: str) -> None:
         """Test that no result matched when string format that fails the regex."""
         result = re.match(URI_ID_EXTRACT_REGEX, string)
         self.assertIsNone(result)
@@ -40,11 +45,11 @@ class TestUriIdExtractRegex(TestCase):
 class TestSiteIdExtractRegex(TestCase):
     @parameterized.expand(
         [
-            ("all_string", f"http://fdri.ceh.ac.uk/id/site/cosmos-chimn", "chimn"),
-            ("with_numbers", f"http://fdri.ceh.ac.uk/id/site/cosmos-alic1", "alic1"),
+            ("all_string", "http://fdri.ceh.ac.uk/id/site/cosmos-chimn", "chimn"),
+            ("with_numbers", "http://fdri.ceh.ac.uk/id/site/cosmos-alic1", "alic1"),
         ]
     )
-    def test_parsing_success(self, _, string, expected):
+    def test_parsing_success(self, _: str, string: str, expected: str) -> None:
         """Test that validation passes when string format meets the regex."""
         result = re.match(SITE_ID_EXTRACT_REGEX, string).group(1)
         self.assertEqual(result, expected)
@@ -59,10 +64,11 @@ class TestSiteIdExtractRegex(TestCase):
             ("only_numbers", "http://example.com/id/site/12345"),
         ]
     )
-    def test_parsing_none(self, _, string):
+    def test_parsing_none(self, _: str, string: str) -> None:
         """Test that no result matched when string format that fails the regex."""
         result = re.match(SITE_ID_EXTRACT_REGEX, string)
         self.assertIsNone(result)
+
 
 class TestGetProperty(TestCase):
     """Test the get_property function."""
@@ -113,27 +119,21 @@ class TestGetProperty(TestCase):
         result = get_property(key, {key: expected})
         self.assertEqual(result, expected)
 
+
 class TestCheckSingleListItem(TestCase):
     """Test the check_single_list_item method"""
 
-    def test_success(self):
+    def test_success(self) -> None:
         """Test method returns the only item from a list"""
-        input = ["test"]
+        input_data = ["test"]
         expected = "test"
 
-        result = check_single_list_item(input)
+        result = check_single_list_item(input_data)
 
         self.assertEqual(result, expected)
-    
 
-
-    @parameterized.expand(
-        [
-            ("value_error", ["test1", "test2"], ValueError),
-            ("type_error", {"test"}, TypeError)
-        ]
-    )
-    def test_error(self, _, input, error):
+    @parameterized.expand([("value_error", ["test1", "test2"], ValueError), ("type_error", {"test"}, TypeError)])
+    def test_error(self, _: str, input_data: list | dict, error: ValueError | TypeError) -> None:
         """Test correct errors are raised."""
         with self.assertRaises(error):
-            check_single_list_item(input)
+            check_single_list_item(input_data)
