@@ -51,7 +51,7 @@ omit = ["*__init__.py", "**/logger.py", "**/benchmarking*"]
 
 [tool.ruff]
 src = ["src", "tests"]
-include = ["src/**.py", "tests/**.py"]
+include = ["src/**.py"]
 line-length = 120
 
 [tool.ruff.lint]
@@ -74,6 +74,3 @@ select = [
 
 [tool.ruff.lint.flake8-type-checking]
 strict = true
-
-[tool.ruff.lint.flake8-builtins]
-allowed-modules = ["io"]

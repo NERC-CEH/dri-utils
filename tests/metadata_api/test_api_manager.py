@@ -1,6 +1,6 @@
 import json
 from unittest.async_case import IsolatedAsyncioTestCase
-from unittest.mock import Mock, patch
+from unittest.mock import MagicMock, patch
 
 from httpx import HTTPError, HTTPStatusError, Request, Response, TimeoutException
 
@@ -94,7 +94,7 @@ class TestPaginatedAPICall(IsolatedAsyncioTestCase):
         self.host_url = "test_url.com"
         self.api = MetadataAPIManager(host=self.host_url, network="cosmos")
 
-    async def test_no_pagination_required_limit_field_not_present(self, mock_metadata_api: Mock) -> None:
+    async def test_no_pagination_required_limit_field_not_present(self, mock_metadata_api: MagicMock) -> None:
         """Check the entire API response is returned if no pagination is required."""
         expected_response = {"meta": {}, "items": [{"key_1": "value_1"}]}
         mock_api_data = {self.host_url: expected_response}
@@ -105,7 +105,7 @@ class TestPaginatedAPICall(IsolatedAsyncioTestCase):
         assert result == expected_response
         assert mock_metadata_api.call_count == 1
 
-    async def test_no_pagination_required_num_items_below_limit(self, mock_metadata_api: Mock) -> None:
+    async def test_no_pagination_required_num_items_below_limit(self, mock_metadata_api: MagicMock) -> None:
         """Check no extra pagination calls are made if fewer items than the page size limit are returned."""
         expected_response = {"meta": {"limit": 2}, "items": [{"key_1": "value_1"}]}
         mock_api_data = {self.host_url: expected_response}
@@ -116,7 +116,7 @@ class TestPaginatedAPICall(IsolatedAsyncioTestCase):
         assert result == expected_response
         assert mock_metadata_api.call_count == 1
 
-    async def test_pagination_required(self, mock_metadata_api: Mock) -> None:
+    async def test_pagination_required(self, mock_metadata_api: MagicMock) -> None:
         """Check the pagination logic is called when required."""
         first_page = {
             "meta": {"limit": 2},
