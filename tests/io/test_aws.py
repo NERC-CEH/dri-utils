@@ -2,17 +2,26 @@ import unittest
 from unittest.mock import MagicMock, Mock
 from driutils.io.aws import S3Writer, S3Reader
 import boto3
+import moto
 from botocore.client import BaseClient
 from mypy_boto3_s3.client import S3Client
 from parameterized import parameterized
 from botocore.exceptions import ClientError
 
+BUCKET_NAME = "test_bucket"
+TEST_KEY = "test_key"
+TEST_OBJECT = b'{ "test": "object" }'
+TEST_TAGS = {"tag1": "test1", "tag2": "test2"}
+
+@moto.mock_aws
 class TestS3Writer(unittest.TestCase):
 
-    @classmethod
-    def setUpClass(cls) -> None:
-
-        cls.s3_client: S3Client = boto3.client("s3") #type: ignore
+    def setUp(self) -> None:
+        self.s3_client: S3Client = boto3.client("s3") #type: ignore
+        self.s3_client.create_bucket(
+            Bucket=BUCKET_NAME,
+            CreateBucketConfiguration={"LocationConstraint": "eu-west-2"},
+        )
 
     def test_s3_client_type(self):
         """Returns an object if s3_client is of type `boto3.client.s3`, otherwise
@@ -36,21 +45,33 @@ class TestS3Writer(unittest.TestCase):
         writer = S3Writer(self.s3_client)
         writer._connection = MagicMock()
         with self.assertRaises(TypeError):
-            writer.write("bucket", "key", body)
+            writer.write(BUCKET_NAME, TEST_KEY, body)
         
         writer._connection.put_object.assert_not_called()
 
     def test_write_called(self):
         """Tests that the writer can be executed"""
 
-        body = b"Test data"
-
         writer = S3Writer(self.s3_client)
         writer._connection = MagicMock()
-        writer.write("bucket", "key", body)
+        writer.write(BUCKET_NAME, TEST_KEY, TEST_OBJECT)
 
-        writer._connection.put_object.assert_called_once_with(Bucket="bucket", Key="key", Body=body)
-        
+        writer._connection.put_object.assert_called_once_with(Bucket=BUCKET_NAME, Key=TEST_KEY, Body=TEST_OBJECT)
+
+    def test_object_written(self) -> None:
+        """Test the object is written correctly"""
+        writer = S3Writer(self.s3_client)
+
+        writer.write(BUCKET_NAME, TEST_KEY, TEST_OBJECT, TEST_TAGS)
+        objectBody = self.s3_client.get_object(Bucket=BUCKET_NAME, Key=TEST_KEY)["Body"].read()
+        object_tags = self.s3_client.get_object_tagging(Bucket=BUCKET_NAME, Key=TEST_KEY)["TagSet"]
+
+        expected_body = b'{ "test": "object" }'
+        expected_tags = [{"Key": "tag1", "Value": "test1"}, {"Key": "tag2", "Value": "test2"}]
+
+        assert objectBody == expected_body
+        assert object_tags == expected_tags
+
 class TestS3Reader(unittest.TestCase):
     """Test suite for the S3 client reader"""
 

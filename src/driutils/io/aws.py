@@ -1,4 +1,5 @@
 import logging
+import urllib.parse
 
 from botocore.client import BaseClient
 from botocore.exceptions import ClientError
@@ -59,7 +60,7 @@ class S3Reader(S3Base, ReaderInterface):
 class S3Writer(S3Base, WriterInterface):
     """Writes to an S3 bucket"""
 
-    def write(self, bucket_name: str, key: str, body: bytes) -> None:
+    def write(self, bucket_name: str, key: str, body: bytes, tags: dict = None) -> None:
         """Uploads an object to an S3 bucket.
 
         This function attempts to upload a byte object to a specified S3 bucket
@@ -70,14 +71,25 @@ class S3Writer(S3Base, WriterInterface):
             bucket_name: The name of the S3 bucket.
             key: The key (path) of the object within the bucket.
             body: data to write to s3 object
+            tags: Any tags to add to the object, Defaults to None.
 
         Raises:
             TypeError: If body is not bytes
+            TypeError: If tags is not a dict
         """
         if not isinstance(body, bytes):
-            raise TypeError(f"'body' must be 'bytes', not '{type(body)}")
+            raise TypeError(f"'body' must be 'bytes', not '{type(body)}'")
 
-        self._connection.put_object(Bucket=bucket_name, Key=key, Body=body)
+        # The tag-set must be encoded as URL Query parameters key1=value1&key2=value2
+        if tags:
+            if not isinstance(tags, dict):
+                raise TypeError(f"'tags' must be 'dict' not '{type(tags)}'")
+
+            tag_set = urllib.parse.urlencode(tags)
+
+            self._connection.put_object(Bucket=bucket_name, Key=key, Body=body, Tagging=tag_set)
+        else:
+            self._connection.put_object(Bucket=bucket_name, Key=key, Body=body)
 
 
 class S3ReaderWriter(S3Reader, S3Writer):
