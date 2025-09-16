@@ -1,5 +1,5 @@
 import unittest
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, Mock, patch
 
 import duckdb
 from duckdb import DuckDBPyConnection
@@ -16,7 +16,7 @@ class TestDuckDBFileReader(unittest.TestCase):
         self.assertIsInstance(reader._connection, DuckDBPyConnection)
 
     @patch("driutils.io.duckdb.DuckDBFileReader.close")
-    def test_context_manager_is_functional(self, mock: MagicMock) -> None:
+    def test_context_manager_is_functional(self, mock: Mock) -> None:
         """Should be able to use context manager to auto-close file connection"""
 
         with DuckDBFileReader() as con:
@@ -25,7 +25,7 @@ class TestDuckDBFileReader(unittest.TestCase):
         mock.assert_called_once()
 
     @patch("driutils.io.duckdb.DuckDBFileReader.close")
-    def test_connection_closed_on_delete(self, mock: MagicMock) -> None:
+    def test_connection_closed_on_delete(self, mock: Mock) -> None:
         """Tests that duckdb connection is closed when object is deleted"""
 
         reader = DuckDBFileReader()
@@ -67,7 +67,7 @@ class TestDuckDBFileReader(unittest.TestCase):
 
 class TestDuckDBS3Reader(unittest.TestCase):
     @parameterized.expand(["a", 1, "cutom_endpoint"])
-    def test_value_error_if_invalid_auth_option(self, value: str) -> None:
+    def test_value_error_if_invalid_auth_option(self, value: int | str) -> None:
         """Test that a ValueError is raised if a bad auth option is selected"""
 
         with self.assertRaises(ValueError):
@@ -75,28 +75,28 @@ class TestDuckDBS3Reader(unittest.TestCase):
 
     @parameterized.expand(["auto", "AUTO", "aUtO"])
     @patch("driutils.io.duckdb.DuckDBS3Reader._authenticate")
-    def test_upper_or_lowercase_option_accepted(self, value: str, mock: MagicMock) -> None:
+    def test_upper_or_lowercase_option_accepted(self, value: str, mock: Mock) -> None:
         """Tests that the auth options can be provided in any case"""
         DuckDBS3Reader(value)
 
         mock.assert_called_once()
 
     @patch.object(DuckDBS3Reader, "_auto_auth", side_effect=DuckDBS3Reader._auto_auth, autospec=True)
-    def test_init_auto_authentication(self, mock: MagicMock) -> None:
+    def test_init_auto_authentication(self, mock: Mock) -> None:
         """Tests that the reader can use the 'auto' auth option"""
 
         DuckDBS3Reader("auto")
         mock.assert_called_once()
 
     @patch.object(DuckDBS3Reader, "_sts_auth", side_effect=DuckDBS3Reader._sts_auth, autospec=True)
-    def test_init_sts_authentication(self, mock: MagicMock) -> None:
+    def test_init_sts_authentication(self, mock: Mock) -> None:
         """Tests that the reader can use the 'sts' auth option"""
         DuckDBS3Reader("sts")
         mock.assert_called_once()
 
     @parameterized.expand([["https://s3-a-real-endpoint", True], ["http://localhost:8080", False]])
     @patch.object(DuckDBS3Reader, "_custom_endpoint_auth", wraps=DuckDBS3Reader._custom_endpoint_auth, autospec=True)
-    def test_init_custom_endpoint_authentication_https(self, url: str, ssl: bool, mock: MagicMock) -> None:
+    def test_init_custom_endpoint_authentication_https(self, url: str, ssl: bool, mock: Mock) -> None:
         """Tests that the reader can authenticate to a custom endpoint
         with https protocol"""
         reader = DuckDBS3Reader("custom_endpoint", url, ssl)
