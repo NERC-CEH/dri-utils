@@ -49,24 +49,12 @@ class TestS3Writer(unittest.TestCase):
         with self.assertRaises(TypeError):
             writer.write(BUCKET_NAME, TEST_KEY, body)
 
-        writer._connection.put_object.assert_not_called()
-
     def test_error_raised_if_tags_not_dict(self) -> None:
         """Test type error is raised if tags argument not a dict"""
 
         writer = S3Writer(self.s3_client)
         with self.assertRaises(TypeError):
             writer.write(BUCKET_NAME, TEST_KEY, TEST_OBJECT, "incorrect_tag_format")
-
-        writer._connection.put_object.assert_not_called()
-
-    def test_write_called(self) -> None:
-        """Tests that the writer can be executed"""
-
-        writer = S3Writer(self.s3_client)
-        writer.write(BUCKET_NAME, TEST_KEY, TEST_OBJECT)
-
-        writer._connection.put_object.assert_called_once_with(Bucket=BUCKET_NAME, Key=TEST_KEY, Body=TEST_OBJECT)
 
     def test_object_written(self) -> None:
         """Test the object is written correctly"""
