@@ -74,3 +74,6 @@ select = [
 
 [tool.ruff.lint.flake8-type-checking]
 strict = true
+
+[tool.ruff.lint.flake8-builtins]
+allowed-modules = ["io"]
