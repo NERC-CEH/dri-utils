@@ -9,6 +9,10 @@ URI_ID_EXTRACT_REGEX = r".+\/([a-zA-Z0-9\-\_]+)$"
 #   e.g. http://fdri.ceh.ac.uk/id/site/cosmos-chimn => chimn
 SITE_ID_EXTRACT_REGEX = r".+\/\w+\-([a-zA-Z0-9]+)$"
 
+# To get the url fragment from the uri string. Used for arguments.
+#   e.g http://fdri.ceh.ac.uk/id/configuration-item/cosmos-config-item-1#correction-factor => correction-factor
+ARG_ID_EXTRACT_REGEX = r".+#(.+)$"
+
 
 def check_single_list_item(data: List) -> Any:
     """Checks that list has a single item within in.
