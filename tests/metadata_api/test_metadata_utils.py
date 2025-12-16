@@ -111,36 +111,12 @@ class TestGetProperty:
         result = get_property(key, {key: value})
         assert result == expected
 
-    # def test_get_property_list(self) -> None:
-    #     """Test extracting a string property"""
-    #     key = "abc"
-    #     expected = "123"
-    #     result = get_property(key, {key: [expected]})
-    #     assert result == expected
-
     def test_get_property_none(self) -> None:
         """Test trying to extract a None dictionary"""
         key = "abc"
         expected = None
         result = get_property(key, None)
         assert result == expected
-
-    # def test_get_property_falsy_value(self) -> None:
-    #     """Test extracting a falsy value"""
-    #     key = "abc"
-
-    #     expected = None
-    #     result = get_property(key, {key: expected})
-    #     assert result == expected
-
-    #     expected = ""
-    #     result = get_property(key, {key: expected})
-    #     assert result == expected
-
-    #     expected = 0
-    #     result = get_property(key, {key: expected})
-    #     assert result == expected
-
 
 class TestCheckSingleListItem:
     """Test the check_single_list_item method"""
