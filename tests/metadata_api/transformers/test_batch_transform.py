@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from driutils.metadata_api.models.batch import BatchDataset
-from driutils.metadata_api.transformers.batches import BatchTransformer
+from driutils.metadata_api.transformers.batches import transform_batches
 
 
 class TestBatchTransformer:
@@ -9,7 +9,6 @@ class TestBatchTransformer:
 
     def test_transform_batch(self) -> None:
         """Test transforming batches"""
-        transformer = BatchTransformer()
 
         raw_data = {
             "items": [
@@ -149,5 +148,5 @@ class TestBatchTransformer:
             }
         ]
 
-        result = transformer.transform(raw_data)
+        result = transform_batches(raw_data)
         assert result == expected_response
