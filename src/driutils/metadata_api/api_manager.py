@@ -220,3 +220,34 @@ class MetadataAPIManager:
         response = await self._make_paginated_api_call(url, base_parameters | timeseries_def_parameter)
 
         return response
+
+    async def fetch_batches(self, batch_id: str | None) -> Dict[str, Any]:
+        """
+        Fetch batch metadata. If no batch_id is provided then fetches all batches.
+
+        Returns:
+            The JSON response from the API
+
+        Raises:
+            HTTPException: If the API request fails or returns an error
+
+        """
+        dataset_type = "http://fdri.ceh.ac.uk/vocab/metadata/ObservationDatasetSeries"
+        originating_programme = "http://fdri.ceh.ac.uk/id/programme/nrfa"
+        view = "datasetseries"
+        params = {"@type": dataset_type, "originatingProgramme": originating_programme, "_view": view}
+
+        if batch_id:
+            params["@id"] = f"http://fdri.ceh.ac.uk/id/dataset/nrfa-batch-{batch_id}"
+
+        async with AsyncClient() as client:
+            try:
+                response = await client.get(
+                    f"{self.host}/id/dataset.json",
+                    params=params,
+                )
+                return response.json()
+            except HTTPError as e:
+                logger.error(f"Failed to fetch list of available networks: {str(e)}")
+                logger.exception(e)
+                raise e
