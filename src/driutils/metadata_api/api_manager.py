@@ -243,7 +243,7 @@ class MetadataAPIManager:
         async with AsyncClient() as client:
             try:
                 response = await client.get(
-                    f"{self.base_url}/id/dataset.json",
+                    f"{self.host}/id/dataset.json",
                     params=params,
                 )
                 return response.json()
