@@ -36,7 +36,7 @@ def transform_batches(raw_data: dict) -> list[Batch]:
             measure = get_property("@id", get_property("measure", data))
             variable, resolution, aggregation, units = [""] * 4
             if measure:
-                variable, resolution, aggregation, units = measure.split("-")
+                variable, resolution, aggregation, units = measure.split("_")
                 # Remove the id (e.g. http://fdri.ceh.ac.uk) from the variable section
                 match = re.match(URI_ID_EXTRACT_REGEX, variable)
                 variable = match.group(1) if match else variable

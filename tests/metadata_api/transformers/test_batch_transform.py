@@ -48,7 +48,7 @@ class TestBatchTransformer:
                                 },
                             ],
                             "processingLevel": {"@id": "http://fdri.ceh.ac.uk/ref/common/processing-level/ingested"},
-                            "measure": [{"@id": "http://fdri.ceh.ac.uk/ref/common/measure/flow-p1d-mean-m3s"}],
+                            "measure": [{"@id": "http://fdri.ceh.ac.uk/ref/common/measure/flow_p1d_mean_m3s"}],
                             "originatingSite": [
                                 {
                                     "@id": "http://fdri.ceh.ac.uk/id/site/nrfa-57001",
@@ -86,7 +86,7 @@ class TestBatchTransformer:
                                 },
                             ],
                             "processingLevel": {"@id": "http://fdri.ceh.ac.uk/ref/common/processing-level/ingested"},
-                            "measure": [{"@id": "http://fdri.ceh.ac.uk/ref/common/measure/flow-p1d-mean-m3s"}],
+                            "measure": [{"@id": "http://fdri.ceh.ac.uk/ref/common/measure/flow_p1d_mean_m3s"}],
                             "originatingSite": [
                                 {
                                     "@id": "http://fdri.ceh.ac.uk/id/site/nrfa-57002",
