@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from driutils.metadata_api.models.batch import BatchDataset
+from driutils.metadata_api.models.batch import Batch, BatchDataset
 from driutils.metadata_api.transformers.batches import transform_batches
 
 
@@ -103,9 +103,9 @@ class TestBatchTransformer:
         }
 
         expected_response = [
-            {
-                "batch_id": "test_1",
-                "datasets": [
+            Batch(
+                batch_id = "test_1",
+                datasets = [
                     BatchDataset(
                         **{
                             "batch_dataset_id": "http://fdri.ceh.ac.uk/id/dataset/nrfa-batch-dataset-test_1-water-daily-flow-mean-57001",
@@ -145,7 +145,7 @@ class TestBatchTransformer:
                         }
                     ),
                 ],
-            }
+            )
         ]
 
         result = transform_batches(raw_data)

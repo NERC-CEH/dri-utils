@@ -23,7 +23,7 @@ class BatchDataset(BaseModel):
     s3_bucket: str
     s3_column: str
     filename: str
-    last_updated: datetime
+    last_updated: Optional[date | datetime] = Field(default=None)
     start_date: Optional[date | datetime] = Field(default=None)
     end_date: Optional[date | datetime] = Field(default=None)
 
