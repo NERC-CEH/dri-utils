@@ -1,54 +1,42 @@
-from dataclasses import dataclass
-from datetime import datetime
-from typing import TypedDict
+from datetime import date, datetime
+from typing import Optional
+
+from pydantic import BaseModel, Field, field_validator
 
 
-@dataclass
-class BatchDataset:
-    """Batch dataset model
+class BatchDataset(BaseModel):
+    """The BatchDataset model.
 
-    Attributes:
-        batch_dataset_id: The ID of the dataset
-        filename: Which uploaded filename the data comes from
-        site: The NRFA site ID
-        status: The processing status of the dataset
-        resolution: The resolution
-        measure: The dataset measure
-            composed of variable-resolution-aggregation-units if its an aggregate measure
-            composed of variable-resolution-units if instantaneous measure
-        dataset: the type of dataset e.g. water-daily-flow-mean
-        start_date: the series start date
-        end_date: the series end date
-        s3_key: the s3 key for the data
-        s3_bucket: the s3 bucket where the data is stored
-        s3_column: the column contaiing the values
+    Other properties exist but are not required in the batch metadata template
+    Leaving for now as some of the values are yet to be extracted
+    date_uploaded, measuring_authority, operator_id, area, uploaded_by
     """
 
-    batch_dataset_id: str
-    filename: str
+    dataset: str
     site: str
     variable: str
     aggregation: str
     units: str
-    status: str
     resolution: str
-    measure: str
-    dataset: str
-    start_date: datetime | None
-    end_date: datetime | None
+    status: str
     s3_key: str
     s3_bucket: str
     s3_column: str
+    filename: str
+    last_updated: Optional[date | datetime] = Field(default=None)
+    start_date: Optional[date | datetime] = Field(default=None)
+    end_date: Optional[date | datetime] = Field(default=None)
+
+    @field_validator("start_date", "end_date", "last_updated", mode="after")
+    def ensure_datetime(cls, value: date | datetime) -> datetime:
+        if isinstance(value, date):
+            value = datetime.combine(value, datetime.min.time())
+
+        return value
 
 
-@dataclass
-class Batch(TypedDict):
-    """Batch Model
-
-    Attributes:
-        batch_id: The batch id
-        datasets: The datasets that comprise the batch
-    """
+class Batch(BaseModel):
+    """The Batch model."""
 
     batch_id: str
     datasets: list[BatchDataset]
