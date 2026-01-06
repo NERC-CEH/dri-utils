@@ -17,8 +17,8 @@ class MetadataAPIUpdater:
     def __init__(self, host: str) -> None:
         self.host = host
 
-    def convert_json_to_jsonlines(self, json: dict) -> bytes:
-        """Convert a json object to a jsonlines bytes object.
+    def convert_json_to_jsonlines(self, json: str) -> bytes:
+        """Convert a json encoded string to a jsonlines bytes object.
 
         Args:
             batch: the Batch model
