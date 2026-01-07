@@ -21,7 +21,7 @@ class MetadataAPIUpdater:
         """Convert a json encoded string to a jsonlines bytes object.
 
         Args:
-            batch: the Batch model
+            json: the json to convert
 
         Returns:
             a jsonlines bytes object
