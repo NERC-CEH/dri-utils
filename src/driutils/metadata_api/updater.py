@@ -30,7 +30,7 @@ class MetadataAPIUpdater:
 
     def update_metadata(
         self, payload: bytes, component: str, mode: str, parameters: dict = {}
-    ) -> requests.models.Response:
+    ) -> dict:
         """Update the metadata for a specified component.
 
         The payload must be in jsonlines format.
