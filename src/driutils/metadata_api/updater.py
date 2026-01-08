@@ -28,9 +28,7 @@ class MetadataAPIUpdater:
         """
         return (json + "\n").encode("utf-8")
 
-    def update_metadata(
-        self, payload: bytes, component: str, mode: str, parameters: dict = {}
-    ) -> dict:
+    def update_metadata(self, payload: bytes, component: str, mode: str, parameters: dict = {}) -> dict:
         """Update the metadata for a specified component.
 
         The payload must be in jsonlines format.
