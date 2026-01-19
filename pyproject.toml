@@ -10,6 +10,7 @@ dependencies = [
     "boto3",
     "httpx",
     "isodate",
+    "loguru",
     "mypy_boto3_s3",
     "moto",
     "polars",
