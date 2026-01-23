@@ -1,59 +1,69 @@
-"""Module to handle calls to the metadata API."""
+"""
+Metadata API Manager
+
+Provides a lightweight interface for interacting with the metadata API. Supports both single and paginated requests.
+For paginated requests, it automatically combines results when multiple pages are returned.
+"""
 
 import logging
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
-from httpx import AsyncClient, HTTPError
+import requests
+from driutils.metadata_api.models.site import SiteResponse
+from driutils.metadata_api.models.network import Network
+from requests import HTTPError
 
 logger = logging.getLogger(__name__)
 
-PAGE_SIZE = 25
+PAGE_SIZE = 500
 
 
 class MetadataAPIManager:
     """Manage requests to the metadata API."""
 
-    def __init__(self, host: str, network: str) -> None:
-        """Initialise the API Manager
+    def __init__(self, host: str, session: requests.Session | None = None) -> None:
+        """
+        Initialise the API Manager.
 
         Args:
-            host: host URL for the metadata API
-            network: what network of sensors to query
+            host: Host URL for the metadata API.
+            session: Optional instance of a requests session object. If none, a default one will be created.
         """
         self.host = host
-        self.network = network
+        self.session = session or requests.Session()
 
-    async def _make_api_call(
-        self, url: str, params: list[tuple[str, str]] | dict[str, str] | None = None
-    ) -> Dict[str, Any]:
+    def make_api_call(self, url: str, params: list[tuple[str, str]] | dict[str, str] | None = None) -> dict[str, Any]:
         """Make a call to the metadata API.
 
         Args:
-            url: The request url.
-            params: The request params. Defaults to None.
+            url: The request URL.
+            params: The request parameters. Defaults to None.
 
         Returns:
-            The JSON response from the API
+            The JSON response from the API.
 
         Raises:
-            HTTP exception if the API request fails or returns an error.
+            HTTPError: If the API request fails or returns an error.
         """
-        async with AsyncClient() as client:
-            try:
-                response = await client.get(url=url, params=params)
-                response.raise_for_status()
-                logger.debug(f"Trying to access: {response.url}")
-                return response.json()
-            except HTTPError as e:
-                logger.error(f"Failed to fetch {self.network} data: {str(e)}")
-                logger.exception(e)
-                raise e
+        try:
+            response = self.session.get(url=url, params=params, timeout=30)
+            response.raise_for_status()
+            logger.debug(f"Accessed: {response.url}")
+            return response.json()
+        except HTTPError as e:
+            logger.error(f"Failed to fetch data: {e}")
+            raise
+        except ValueError:
+            logger.error(f"Invalid JSON response from: {url}")
+            raise
 
-    async def _make_paginated_api_call(
-        self, url: str, params: list[tuple[str, str]] | dict[str, str] | None = None, page_size: int = PAGE_SIZE
-    ) -> Dict[str, Any]:
-        """
-        Make a paginated call to the metadata API.
+    def make_paginated_api_call(
+        self,
+        url: str,
+        params: tuple[tuple[str, str], ...] | dict[str, str] | None = None,
+        page_size: int = PAGE_SIZE,
+    ) -> dict[str, Any]:
+        """Make a paginated call to the metadata API.
 
         Due to some metadata API calls not supporting pagination, an initial API call is made first. The response from
         this then provides the information required to determine if further paginated API calls are required.
@@ -72,156 +82,74 @@ class MetadataAPIManager:
 
         Returns:
             The JSON response from the API. This will be the combined response if pagination is required.
-
         """
         # Make the initial API response to determine if further paginated API calls are required.
-        initial_response = await self._make_api_call(url=url, params=params)
-        if "limit" not in initial_response["meta"].keys():
+        initial_response = self.make_api_call(url=url, params=params)
+        meta = initial_response.get("meta", {})
+        items = list(initial_response.get("items", []))
+
+        if "limit" not in meta or len(items) < meta.get("limit", 0):
             return initial_response
 
-        if len(initial_response["items"]) < initial_response["meta"]["limit"]:
-            return initial_response
-
+        # Prepare for pagination
         # Ensure params exists. Note that this isn't located at the top of the function as some API calls change their
         # behaviour if any params are provided, even if it's an empty dictionary
         if params is None:
             params = {}
+        params = self._update_params(params, "_limit", page_size)
+        offset = len(items)
 
-        # The initial response meta value can be used for the final response. The core contents (excluding limit and
-        # offset) should be the same across all pages.
-        response_meta = initial_response["meta"]
-        response_items = initial_response["items"]
-
-        params = self._update_params(params, param_key="_limit", param_value=page_size)
-        offset = 0
-        current_items = list(response_items)
-
-        while current_items:
+        while True:
+            params = self._update_params(params, "_offset", offset)
+            next_page = self.make_api_call(url=url, params=params)
+            new_items = next_page.get("items", [])
+            if not new_items:
+                break
+            items.extend(new_items)
             offset += page_size
-            params = self._update_params(params, param_key="_offset", param_value=offset)
 
-            response_data = await self._make_api_call(url=url, params=params)
-
-            current_items = response_data["items"]
-            response_items.extend(current_items)
-
-        return {"meta": response_meta, "items": response_items}
+        return {"meta": meta, "items": items}
 
     @staticmethod
-    def _update_params(params: Dict | List[Tuple], param_key: str, param_value: str) -> Dict | List[Tuple]:
+    def _update_params(params: dict | list[tuple], param_key: str, param_value: str | int) -> dict | list[tuple]:
+        """Update query parameters, handling both dict and list-of-tuples formats."""
         if isinstance(params, dict):
             params[param_key] = param_value
-        elif isinstance(params, list):
-            params = [(key, value) for (key, value) in params if key != param_key]
+        else:
+            params = [(k, v) for (k, v) in params if k != param_key]
             params.append((param_key, param_value))
-
         return params
 
-    async def fetch_sites(self, params: list[tuple[str, str]] | dict[str, str] | None = None) -> Dict[str, Any]:
-        """Fetch all sites from the specified network.
+    def fetch_sites(self, site_ids: list[str]) -> SiteResponse:
+        """Fetch site metadata for given site ID(s).
 
         Args:
-            params: Additonal API parameters. Defaults to None.
+            site_ids: ID(s) of the site(s) to fetch.
 
         Returns:
-            JSON response containing site information for the network.
-
-        Raises:
-            HTTPError: If the API request fails.
+            The parsed JSON response containing site metadata.
         """
-        response = await self._make_paginated_api_call(f"{self.host}/id/network/{self.network}", params)
-        return response
+        url = f"{self.host}/id/site?_view=annotated"
+        params = tuple(("@id", site_id) for site_id in site_ids)
+        response = self.make_paginated_api_call(url, params)
+        return SiteResponse.model_validate(response)
 
-    async def fetch_site_metadata(self, site_id: str) -> Dict[str, Any]:
-        """
-        Fetch metadata for a single site ID
+
+    def fetch_network(self, network: str) -> Network:
+        """Fetch network metadata for given network name
 
         Args:
-            site_id: The site ID to fetch site metadata for.
+            network: Network to fetch metadata for.
 
         Returns:
-            JSON response containing the metadata for the site ID.
-
-        Raises:
-            HTTPError: If the API request fails.
-
+            The parsed JSON response containing network metadata.
         """
-        url = f"{self.host}/id/site/{site_id}"
-        response = await self._make_paginated_api_call(url)
+        url = f"{self.host}/id/network/{network}"
+        response = self.make_paginated_api_call(url)
+        return Network.model_validate(response)
+    
 
-        return response
-
-    async def fetch_processing_configs(self, parameters: List[Tuple[str, str]]) -> Dict[str, Any]:
-        """Fetch processing configurations. This can be for infill, QC, and/or correction.
-
-        Args:
-            parameters: API query parameters for the processing configuration endpoint.
-
-        Returns:
-            JSON response containing processing configurations.
-
-        Raises:
-            HTTPError: If the API request fails.
-        """
-        url = f"{self.host}/id/data-processing-configuration.json"
-        response = await self._make_paginated_api_call(url, parameters)
-
-        return response
-
-    async def fetch_timeseries_metadata(self, parameters: List[Tuple[str, str]]) -> Dict[str, Any]:
-        """Fetch metadata for timeseries id(s)
-
-        Args:
-            parameters: API query parameters for the dataset endpoint
-
-        Returns:
-            JSON response containing time series ID metadata.
-
-        Raises:
-            HTTPError: If the API request fails.
-        """
-        url = f"{self.host}/id/dataset"
-        response = await self._make_paginated_api_call(url, parameters)
-
-        return response
-
-    async def fetch_dependent_dataset_metadata(self, timeseries_id: str) -> Dict[str, Any]:
-        """Fetch the metadata of any dependencies for a specific dataset
-
-        Args:
-            timeseries_id: The ID of the timeseries dataset to fetch dependencies for
-
-        Returns:
-            JSON response containing time series ID metadata.
-
-        Raises:
-            HTTPError: If the API request fails.
-        """
-        url = f"{self.host}/id/dataset/{timeseries_id}/_dependencies"
-        response = await self._make_paginated_api_call(url)
-
-        return response
-
-    async def fetch_timeseries_derivation_metadata(self, timeseries_def: str) -> Dict[str, Any]:
-        """Fetch metadata for derivations associated to a timeseries definition
-
-        Args:
-            timeseries_def: The timeseries definition ID to fetch derivation metadata for.
-
-        Returns:
-            JSON response containing time series derivation metadata.
-
-        Raises:
-            HTTPError: If the API request fails.
-        """
-        base_parameters = {"_view": "derivation"}
-        timeseries_def_parameter = {"@id": timeseries_def}
-        url = f"{self.host}/ref/time-series-definition"
-        response = await self._make_paginated_api_call(url, base_parameters | timeseries_def_parameter)
-
-        return response
-
-    async def fetch_batches(self, batch_id: str | None) -> Dict[str, Any]:
+    def fetch_batches(self, batch_id: str | None) -> dict[str, Any]:
         """
         Fetch batch metadata. If no batch_id is provided then fetches all batches.
 
@@ -232,6 +160,7 @@ class MetadataAPIManager:
             HTTPException: If the API request fails or returns an error
 
         """
+        url = f"{self.host}/id/dataset.json"
         dataset_type = "http://fdri.ceh.ac.uk/vocab/metadata/ObservationDatasetSeries"
         originating_programme = "http://fdri.ceh.ac.uk/id/programme/nrfa"
         view = "datasetseries"
@@ -240,14 +169,6 @@ class MetadataAPIManager:
         if batch_id:
             params["@id"] = f"http://fdri.ceh.ac.uk/id/dataset/nrfa-batch-{batch_id}"
 
-        async with AsyncClient() as client:
-            try:
-                response = await client.get(
-                    f"{self.host}/id/dataset.json",
-                    params=params,
-                )
-                return response.json()
-            except HTTPError as e:
-                logger.error(f"Failed to fetch list of available networks: {str(e)}")
-                logger.exception(e)
-                raise e
+        response = self.make_paginated_api_call(url, params)
+
+        return response
