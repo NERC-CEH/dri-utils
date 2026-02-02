@@ -82,10 +82,11 @@ class TestMetadataApiManager:
             mock_get.return_value = mock_response
 
             with pytest.raises(json.JSONDecodeError):
-                api.make_api_call("test_url.com")
+                result = api.make_api_call("test_url.com")
+                result.json()
 
 
-@patch.object(MetadataAPIManager, "_make_api_call")
+@patch.object(MetadataAPIManager, "make_api_call")
 class TestPaginatedAPICall:
     host_url = "test_url.com"
 
@@ -97,7 +98,7 @@ class TestPaginatedAPICall:
         mock_api_data = {self.host_url: expected_response}
         mock_metadata_api.side_effect = MockMetadataAPI(api_data=mock_api_data)
 
-        result = api._make_paginated_api_call(self.host_url)
+        result = api.make_paginated_api_call(self.host_url)
 
         assert result == expected_response
         assert mock_metadata_api.call_count == 1
@@ -110,7 +111,7 @@ class TestPaginatedAPICall:
         mock_api_data = {self.host_url: expected_response}
         mock_metadata_api.side_effect = MockMetadataAPI(api_data=mock_api_data)
 
-        result = api._make_paginated_api_call(self.host_url)
+        result = api.make_paginated_api_call(self.host_url)
 
         assert result == expected_response
         assert mock_metadata_api.call_count == 1
@@ -136,7 +137,7 @@ class TestPaginatedAPICall:
         }
 
         mock_metadata_api.side_effect = [first_page, second_page, third_page]
-        result = api._make_paginated_api_call(self.host_url, page_size=2)
+        result = api.make_paginated_api_call(self.host_url, page_size=2)
 
         assert result == expected_response
         assert mock_metadata_api.call_count == 3

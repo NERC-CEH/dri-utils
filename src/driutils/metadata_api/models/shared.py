@@ -54,6 +54,7 @@ class HasValue(IDModel):
             )
         return self
 
+
 class BaseAPIResponse(BaseModel):
     """Base class for API responses with metadata."""
 

@@ -5,13 +5,15 @@ Provides a lightweight interface for interacting with the metadata API. Supports
 For paginated requests, it automatically combines results when multiple pages are returned.
 """
 
+import json
 import logging
 from typing import Any
 
 import requests
-from driutils.metadata_api.models.site import SiteResponse
-from driutils.metadata_api.models.network import Network
 from requests import HTTPError
+
+from driutils.metadata_api.models.network import Network
+from driutils.metadata_api.models.site import SiteResponse
 
 logger = logging.getLogger(__name__)
 
@@ -53,7 +55,7 @@ class MetadataAPIManager:
         except HTTPError as e:
             logger.error(f"Failed to fetch data: {e}")
             raise
-        except ValueError:
+        except json.JSONDecodeError:
             logger.error(f"Invalid JSON response from: {url}")
             raise
 
@@ -134,7 +136,6 @@ class MetadataAPIManager:
         response = self.make_paginated_api_call(url, params)
         return SiteResponse.model_validate(response)
 
-
     def fetch_network(self, network: str) -> Network:
         """Fetch network metadata for given network name
 
@@ -147,7 +148,6 @@ class MetadataAPIManager:
         url = f"{self.host}/id/network/{network}"
         response = self.make_paginated_api_call(url)
         return Network.model_validate(response)
-    
 
     def fetch_batches(self, batch_id: str | None) -> dict[str, Any]:
         """
