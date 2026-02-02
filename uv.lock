@@ -319,6 +319,7 @@ dependencies = [
     { name = "mypy-boto3-s3" },
     { name = "polars" },
     { name = "pydantic" },
+    { name = "pytest" },
     { name = "setuptools" },
     { name = "tenacity" },
 ]
@@ -359,6 +360,7 @@ requires-dist = [
     { name = "mypy-boto3-s3" },
     { name = "polars" },
     { name = "pydantic" },
+    { name = "pytest" },
     { name = "setuptools" },
     { name = "tenacity" },
 ]

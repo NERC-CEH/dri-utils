@@ -1,6 +1,5 @@
 from driutils.utils import ensure_list, remove_protocol_from_url
 
-
 class TestRemoveProtocolFromUrl:
     def test_https_url(self) -> None:
         """Test removing protocol from an HTTPS URL."""

@@ -15,6 +15,7 @@ dependencies = [
     "moto",
     "polars",
     "pydantic",
+    "pytest",
     "setuptools",
     "tenacity",
 ]
