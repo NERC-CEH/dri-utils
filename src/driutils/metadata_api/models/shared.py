@@ -8,7 +8,7 @@ These models ensure consistent validation and alias mapping across all API respo
 """
 
 from datetime import datetime
-from typing import Self
+from typing import Any, Self
 
 from pydantic import BaseModel, Field, model_validator
 from pydantic_core import PydanticCustomError
@@ -43,8 +43,8 @@ class HasValue(IDModel):
     """Represents a value with type information."""
 
     field_type: list[IDModel] | None = Field(None, alias="@type")
-    value: int | float | str | list[str] | None = None
-    value_reference: IDModel | None = Field(None, alias="valueReference")
+    value: list[Any] | int | float | str | list[str] | None = None
+    value_reference: IDModel | list[IDModel] | None = Field(None, alias="valueReference")
 
     @model_validator(mode="after")
     def ensure_value_or_reference(self) -> Self:
