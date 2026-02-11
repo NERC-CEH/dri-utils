@@ -359,7 +359,7 @@ requires-dist = [
     { name = "mypy-boto3-s3" },
     { name = "polars" },
     { name = "pydantic" },
-    { name = "setuptools" },
+    { name = "setuptools", specifier = ">=61.0,<81" },
     { name = "tenacity" },
 ]
 
