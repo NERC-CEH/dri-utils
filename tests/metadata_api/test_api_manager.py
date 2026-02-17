@@ -10,7 +10,7 @@ from driutils.testing_utils.mock_metadata_api import MockMetadataAPI
 
 @pytest.fixture
 def api() -> MetadataAPIManager:
-    api = MetadataAPIManager(host="test_url.com", network="cosmos")
+    api = MetadataAPIManager(host="test_url.com")
     return api
 
 
@@ -35,67 +35,67 @@ class TestMetadataApiManager:
     }
 
     @pytest.mark.asyncio
-    async def test_make_api_call_success(self, api: MetadataAPIManager) -> None:
+    def test_make_api_call_success(self, api: MetadataAPIManager) -> None:
         """Test successful API response."""
-        with patch("httpx.AsyncClient.get") as mock_get:
-            mock_request = Request(method="get", url="test_url.com")
+        with patch("requests.Session.get") as mock_get:
+            mock_request = Request(method="get", url="http://test_url.com")
             mock_response = Response(200, json=self.mock_response_data, request=mock_request)
 
             mock_get.return_value = mock_response
 
-            result = await api._make_api_call("test_url.com")
+            result = api.make_api_call("http://test_url.com")
 
             assert result == self.mock_response_data
 
     @pytest.mark.asyncio
-    async def test_make_api_call_general_error(self, api: MetadataAPIManager) -> None:
+    def test_make_api_call_general_error(self, api: MetadataAPIManager) -> None:
         """Test handling of general errors."""
-        with patch("httpx.AsyncClient.get") as mock_get:
+        with patch("requests.Session.get") as mock_get:
             mock_error = HTTPError("API Error")
             mock_get.side_effect = mock_error
 
             with pytest.raises(HTTPError, match="API Error"):
-                await api._make_api_call("test_url.com")
+                api.make_api_call("test_url.com")
 
     @pytest.mark.asyncio
     async def test_make_api_call_404_error(self, api: MetadataAPIManager) -> None:
         """Test handling of 404 errors."""
-        with patch("httpx.AsyncClient.get") as mock_get:
+        with patch("requests.Session.get") as mock_get:
             mock_error = HTTPStatusError("404 Error", request="test_request", response=404)
             mock_get.side_effect = mock_error
 
             with pytest.raises(HTTPError, match="404 Error"):
-                await api._make_api_call("test_url.com")
+                api.make_api_call("test_url.com")
 
     @pytest.mark.asyncio
     async def test_make_api_call_timeout_error(self, api: MetadataAPIManager) -> None:
         """Test handling of timeout errors."""
-        with patch("httpx.AsyncClient.get") as mock_get:
+        with patch("requests.Session.get") as mock_get:
             mock_error = TimeoutException("timed_out")
             mock_get.side_effect = mock_error
 
             with pytest.raises(HTTPError, match="timed_out"):
-                await api._make_api_call("test_url.com")
+                api.make_api_call("test_url.com")
 
     @pytest.mark.asyncio
     async def test_make_api_call_invalid_json(self, api: MetadataAPIManager) -> None:
         """Test handling of invalid JSON response."""
-        with patch("httpx.AsyncClient.get") as mock_get:
+        with patch("requests.Session.get") as mock_get:
             mock_request = Request(method="get", url="test_url.com")
             mock_response = Response(200, json=self.mock_response_data, request=mock_request)
             mock_response._content = b"invalid json"
             mock_get.return_value = mock_response
 
             with pytest.raises(json.JSONDecodeError):
-                await api._make_api_call("test_url.com")
+                api.make_api_call("test_url.com")
 
 
-@patch.object(MetadataAPIManager, "_make_api_call")
+@patch.object(MetadataAPIManager, "make_api_call")
 class TestPaginatedAPICall:
     host_url = "test_url.com"
 
     @pytest.mark.asyncio
-    async def test_no_pagination_required_limit_field_not_present(
+    def test_no_pagination_required_limit_field_not_present(
         self, mock_metadata_api: MagicMock, api: MetadataAPIManager
     ) -> None:
         """Check the entire API response is returned if no pagination is required."""
@@ -103,13 +103,13 @@ class TestPaginatedAPICall:
         mock_api_data = {self.host_url: expected_response}
         mock_metadata_api.side_effect = MockMetadataAPI(api_data=mock_api_data)
 
-        result = await api._make_paginated_api_call(self.host_url)
+        result = api.make_paginated_api_call(self.host_url)
 
         assert result == expected_response
         assert mock_metadata_api.call_count == 1
 
     @pytest.mark.asyncio
-    async def test_no_pagination_required_num_items_below_limit(
+    def test_no_pagination_required_num_items_below_limit(
         self, mock_metadata_api: MagicMock, api: MetadataAPIManager
     ) -> None:
         """Check no extra pagination calls are made if fewer items than the page size limit are returned."""
@@ -117,13 +117,13 @@ class TestPaginatedAPICall:
         mock_api_data = {self.host_url: expected_response}
         mock_metadata_api.side_effect = MockMetadataAPI(api_data=mock_api_data)
 
-        result = await api._make_paginated_api_call(self.host_url)
+        result = api.make_paginated_api_call(self.host_url)
 
         assert result == expected_response
         assert mock_metadata_api.call_count == 1
 
     @pytest.mark.asyncio
-    async def test_pagination_required(self, mock_metadata_api: MagicMock, api: MetadataAPIManager) -> None:
+    def test_pagination_required(self, mock_metadata_api: MagicMock, api: MetadataAPIManager) -> None:
         """Check the pagination logic is called when required."""
         first_page = {
             "meta": {"limit": 2},
@@ -144,7 +144,7 @@ class TestPaginatedAPICall:
         }
 
         mock_metadata_api.side_effect = [first_page, second_page, third_page]
-        result = await api._make_paginated_api_call(self.host_url, page_size=2)
+        result = api.make_paginated_api_call(self.host_url, page_size=2)
 
         assert result == expected_response
         assert mock_metadata_api.call_count == 3
