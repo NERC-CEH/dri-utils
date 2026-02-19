@@ -3,6 +3,7 @@ from datetime import datetime
 
 import pytest
 import requests
+
 from driutils.metadata_api.models.batch import Batch, BatchDataset
 from driutils.metadata_api.updater import MetadataAPIUpdater
 
