@@ -17,7 +17,7 @@ class LogFormatter(logging.Formatter):
     and either the log message or exception traceback.
     """
 
-    def format(self, record: logging.LogRecord) -> str:
+    def format(self, record: logging.LogRecord) -> dict:
         """
         Format the specified log record as text.
 
@@ -41,7 +41,7 @@ class LogFormatter(logging.Formatter):
         else:
             log_entry += record.getMessage()
 
-        return log_entry
+        return { "level": level, "logger_name": record.name, "timestamp": timestamp, "message": record.getMessage() }
 
     def formatTime(self, record: logging.LogRecord, datefmt: str | None = None) -> str:
         """
