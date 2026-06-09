@@ -4,7 +4,7 @@ import traceback
 
 def json_formatter(record: dict, service_name: str) -> str:
     """The core JSON logger object.
-    
+
     This object is used throughout our services to create consistent, and
     machine readable logs.
 
@@ -14,7 +14,7 @@ def json_formatter(record: dict, service_name: str) -> str:
     Args:
         record: the loguru record object
         service: the service the logs are running for
-    
+
     Returns:
         The log attributes
     """
@@ -27,7 +27,7 @@ def json_formatter(record: dict, service_name: str) -> str:
             "msg": str(exc_value) if exc_value else None,
             "stacktrace": "".join(traceback.format_tb(exc_tb)).strip() if exc_tb else None,
         }
-    
+
     # Create core log structure
     log_entry = {
         "time": record["time"].replace(tzinfo=None).isoformat(),
@@ -36,7 +36,7 @@ def json_formatter(record: dict, service_name: str) -> str:
         "service": service_name,
         "loc": f"{record['name']}:{record['line']}",
         "error_type": error_type,
-        "thread": record['thread'].id,
+        "thread": record["thread"].id,
         "extras": dict(record["extra"]) or None,
     }
 
