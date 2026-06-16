@@ -22,7 +22,7 @@ class LogEntry(BaseModel):
     time: str
     msg: str
     level: str
-    service: str
+    service_name: str
     loc: str
     error_type: ErrorType | None = None
     thread: int
@@ -76,10 +76,10 @@ def json_formatter(record: dict, service_name: str) -> str:
         )
 
     entry = LogEntry(
-        time=record["time"].replace(tzinfo=None).isoformat(),
+        time=record["time"].strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + "Z",
         msg=record["message"],
         level=record["level"].name,
-        service=service_name,
+        service_name=service_name,
         loc=f"{record['name']}:{record['line']}",
         error_type=error_type,
         thread=record["thread"].id,
