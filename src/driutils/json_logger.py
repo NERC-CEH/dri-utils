@@ -19,7 +19,7 @@ class LogEntry(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    time: str
+    ts: str
     msg: str
     level: str
     service_name: str
@@ -76,7 +76,7 @@ def json_formatter(record: dict, service_name: str) -> str:
         )
 
     entry = LogEntry(
-        time=record["time"].strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + "Z",
+        ts=record["time"].strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + "Z",
         msg=record["message"],
         level=record["level"].name,
         service_name=service_name,

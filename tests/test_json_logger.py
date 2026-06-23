@@ -46,7 +46,7 @@ def _make_record(
 class TestLogEntry:
     def test_optional_fields_default_to_none(self) -> None:
         """All service-specific fields should be None when not supplied."""
-        entry = LogEntry(time="t", msg="m", level="INFO", service_name="svc", loc="a:1", thread=1)
+        entry = LogEntry(ts="t", msg="m", level="INFO", service_name="svc", loc="a:1", thread=1)
         assert entry.ingestion_batch_id is None
         assert entry.api_path is None
         assert entry.api_method is None
@@ -57,14 +57,14 @@ class TestLogEntry:
         """Unknown fields should be rejected."""
         with pytest.raises(ValidationError):
             LogEntry(
-                time="t", msg="m", level="INFO", service_name="svc", loc="a:1", thread=1,
+                ts="t", msg="m", level="INFO", service_name="svc", loc="a:1", thread=1,
                 unknown_field="bad",
             )
 
     def test_service_specific_fields_accepted(self) -> None:
         """Known service-specific fields should be accepted."""
         entry = LogEntry(
-            time="t", msg="m", level="INFO", service_name="svc", loc="a:1", thread=1,
+            ts="t", msg="m", level="INFO", service_name="svc", loc="a:1", thread=1,
             ingestion_batch_id="abc-123",
             api_path="/v1/data",
         )
@@ -106,7 +106,7 @@ class TestJsonFormatter:
     def test_core_fields_present(self) -> None:
         record = _make_record()
         parsed = _parse(json_formatter(record, service_name="test-service").strip())
-        for field in ("time", "msg", "level", "service_name", "loc", "error_type", "thread"):
+        for field in ("ts", "msg", "level", "service_name", "loc", "error_type", "thread"):
             assert field in parsed
 
     def test_no_exception_error_type_is_null(self) -> None:
