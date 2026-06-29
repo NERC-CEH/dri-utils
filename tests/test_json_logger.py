@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 import pytest
 from pydantic import ValidationError
 
-from driutils.json_logger import ErrorType, LogEntry, json_formatter, log_extras
+from driutils.json_logger import LogEntry, json_formatter, log_extras
 
 
 def _parse(output: str) -> dict:
@@ -51,7 +51,8 @@ class TestLogEntry:
         assert entry.api_path is None
         assert entry.api_method is None
         assert entry.api_status_code is None
-        assert entry.error_type is None
+        assert entry.error is None
+        assert entry.stacktrace is None
 
     def test_extra_fields_forbidden(self) -> None:
         """Unknown fields should be rejected."""
@@ -71,18 +72,6 @@ class TestLogEntry:
         assert entry.ingestion_batch_id == "abc-123"
         assert entry.api_path == "/v1/data"
 
-
-class TestErrorType:
-    def test_all_fields_default_to_none(self) -> None:
-        error = ErrorType()
-        assert error.type is None
-        assert error.msg is None
-        assert error.stacktrace is None
-
-    def test_fields_set_correctly(self) -> None:
-        error = ErrorType(type="ValueError", msg="bad value", stacktrace="Traceback...")
-        assert error.type == "ValueError"
-        assert error.msg == "bad value"
 
 
 class TestLogExtras:
@@ -106,15 +95,16 @@ class TestJsonFormatter:
     def test_core_fields_present(self) -> None:
         record = _make_record()
         parsed = _parse(json_formatter(record, service_name="test-service").strip())
-        for field in ("ts", "msg", "level", "service_name", "loc", "error_type", "thread"):
+        for field in ("ts", "msg", "level", "service_name", "loc", "thread"):
             assert field in parsed
 
-    def test_no_exception_error_type_is_null(self) -> None:
+    def test_no_exception_error_is_null(self) -> None:
         record = _make_record()
         parsed = _parse(json_formatter(record, service_name="svc").strip())
-        assert parsed["error_type"] is None
+        assert parsed["error"] is None
+        assert parsed["stacktrace"] is None
 
-    def test_exception_populates_error_type(self) -> None:
+    def test_exception_populates_error_fields(self) -> None:
         try:
             raise ValueError("something went wrong")
         except ValueError:
@@ -123,6 +113,5 @@ class TestJsonFormatter:
 
         record = _make_record(exception=exc_info)
         parsed = _parse(json_formatter(record, service_name="svc").strip())
-        assert parsed["error_type"]["type"] == "ValueError"
-        assert parsed["error_type"]["msg"] == "something went wrong"
-        assert parsed["error_type"]["stacktrace"] is not None
+        assert parsed["error"] == "ValueError: something went wrong"
+        assert parsed["stacktrace"] is not None
