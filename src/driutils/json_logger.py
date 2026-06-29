@@ -6,14 +6,6 @@ from loguru import logger
 from pydantic import BaseModel, ConfigDict
 
 
-class ErrorType(BaseModel):
-    """Error attributes"""
-
-    type: str | None = None
-    msg: str | None = None
-    stacktrace: str | None = None
-
-
 class LogEntry(BaseModel):
     """Core log entry"""
 
@@ -24,7 +16,8 @@ class LogEntry(BaseModel):
     level: str
     service_name: str
     loc: str
-    error_type: ErrorType | None = None
+    error: str | None = None
+    stacktrace: str | None = None
     thread: int
 
     # Ingestion-specific
@@ -66,14 +59,18 @@ def json_formatter(record: dict, service_name: str) -> str:
     Returns:
         A newline-terminated JSON string.
     """
-    error_type = None
+    error = None
+    stacktrace = None
     if record["exception"] is not None:
         exc_type, exc_value, exc_tb = record["exception"]
-        error_type = ErrorType(
-            type=exc_type.__name__ if exc_type else None,
-            msg=str(exc_value) if exc_value else None,
-            stacktrace="".join(traceback.format_tb(exc_tb)).strip() if exc_tb else None,
-        )
+        parts = []
+        if exc_type:
+            parts.append(exc_type.__name__)
+        if exc_value:
+            parts.append(str(exc_value))
+        error = ": ".join(parts) or None
+        if exc_tb:
+            stacktrace = "".join(traceback.format_tb(exc_tb)).strip()
 
     entry = LogEntry(
         ts=record["time"].strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + "Z",
@@ -81,7 +78,8 @@ def json_formatter(record: dict, service_name: str) -> str:
         level=record["level"].name,
         service_name=service_name,
         loc=f"{record['name']}:{record['line']}",
-        error_type=error_type,
+        error=error,
+        stacktrace=stacktrace,
         thread=record["thread"].id,
         **record["extra"],
     )
