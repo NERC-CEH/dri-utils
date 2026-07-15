@@ -84,4 +84,10 @@ def json_formatter(record: dict, service_name: str) -> str:
         **record["extra"],
     )
 
-    return (entry.model_dump_json() + "\n").replace("{", "{{").replace("}", "}}")
+    return (
+        (entry.model_dump_json() + "\n")
+        .replace("{", "{{")
+        .replace("}", "}}")
+        .replace("<", "\\<")
+        .replace(">", "\\>")
+    )
