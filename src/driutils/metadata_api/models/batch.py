@@ -7,9 +7,7 @@ from pydantic import BaseModel, Field, field_validator
 class BatchDataset(BaseModel):
     """The BatchDataset model.
 
-    Other properties exist but are not required in the batch metadata template
-    Leaving for now as some of the values are yet to be extracted
-    date_uploaded, measuring_authority, operator_id, area, uploaded_by
+    Some properties are hardcoded until the data can be passed from the UI
     """
 
     dataset: str
@@ -23,6 +21,10 @@ class BatchDataset(BaseModel):
     s3_bucket: str
     s3_column: str
     filename: str
+    access_url: str
+    # TODO: These two values should be updated to values captured by the batch uploader on the UI
+    measuring_authority: str = "unknown"
+    uploaded_by: str = "dri-ui"
     last_updated: Optional[date | datetime] = Field(default=None)
     start_date: Optional[date | datetime] = Field(default=None)
     end_date: Optional[date | datetime] = Field(default=None)

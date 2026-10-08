@@ -74,6 +74,7 @@ class TestAPIManager:
             s3_bucket="test_bucket",
             s3_column="value",
             filename="test.csv",
+            access_url="s3://test_bucket/test_key/",
             start_date=datetime(2025, 1, 1, 0, 0, 0),
             end_date=datetime(2025, 1, 2, 0, 0, 0),
             last_updated=datetime(2025, 1, 3, 0, 0, 0),
@@ -85,7 +86,7 @@ class TestAPIManager:
             b'{"batch_id":"test_batch","datasets":[{"dataset":"test_dataset","site":"test_site",'
             b'"variable":"test_variable","aggregation":"mean","units":"m3s","resolution":"p1d",'
             b'"status":"ingested","s3_key":"test_key","s3_bucket":"test_bucket","s3_column":"value",'
-            b'"filename":"test.csv","last_updated":"2025-01-03T00:00:00","start_date":"2025-01-01T00:00:00",'
+            b'"filename":"test.csv","access_url":"s3://test_bucket/test_key/","measuring_authority":"unknown","uploaded_by":"dri-ui","last_updated":"2025-01-03T00:00:00","start_date":"2025-01-01T00:00:00",'
             b'"end_date":"2025-01-02T00:00:00"}]}\n'
         )
 
