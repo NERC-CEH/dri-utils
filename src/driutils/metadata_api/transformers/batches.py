@@ -51,6 +51,7 @@ def transform_batches(raw_data: dict) -> list[Batch]:
             s3_key = data["sourceDataset"]
             s3_column = data["sourceColumnName"]
             s3_bucket = data["sourceBucket"]
+            access_url = get_property("accessUrl", get_property("distribution", data))
 
             start_date = None
             end_date = None
@@ -74,6 +75,7 @@ def transform_batches(raw_data: dict) -> list[Batch]:
                 s3_key=s3_key,
                 s3_column=s3_column,
                 s3_bucket=s3_bucket,
+                access_url=access_url,
             )
             datasets.append(dataset)
 
