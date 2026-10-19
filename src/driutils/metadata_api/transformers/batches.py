@@ -59,6 +59,11 @@ def transform_batches(raw_data: dict) -> list[Batch]:
                 start_date = datetime.strptime(data["temporal"]["startDate"], "%Y-%m-%dT%H:%M:%S")
                 end_date = datetime.strptime(data["temporal"]["endDate"], "%Y-%m-%dT%H:%M:%S")
 
+            last_updated = None
+            started_at = get_property("startedAtTime", get_property("wasModifiedBy", data))
+            if started_at:
+                last_updated = datetime.fromisoformat(started_at)
+
             dataset = BatchDataset(
                 batch_dataset_id=batch_dataset_id,
                 variable=variable,
@@ -72,6 +77,7 @@ def transform_batches(raw_data: dict) -> list[Batch]:
                 dataset=annotations["dataset"],
                 start_date=start_date,
                 end_date=end_date,
+                last_updated=last_updated,
                 s3_key=s3_key,
                 s3_column=s3_column,
                 s3_bucket=s3_bucket,
