@@ -31,7 +31,7 @@ class BatchDataset(BaseModel):
 
     @field_validator("start_date", "end_date", "last_updated", mode="after")
     def ensure_datetime(cls, value: date | datetime) -> datetime:
-        if isinstance(value, date):
+        if isinstance(value, date) and not isinstance(value, datetime):
             value = datetime.combine(value, datetime.min.time())
 
         return value

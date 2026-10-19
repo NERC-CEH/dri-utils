@@ -58,6 +58,12 @@ class TestBatchTransformer:
                             "sourceColumnName": "value",
                             "sourceBucket": "ukceh-fdri-staging-timeseries-level-0",
                             "sourceDataset": "nrfa/batch=test_1/dataset=water-daily-flow-mean/",
+                            "wasModifiedBy": [
+                                {
+                                    "@id": "http://fdri.ceh.ac.uk/id/activity/nrfa-batch-dataset-update-test_1-water-daily-flow-mean-57001#activity-2025-10-01t12:30:45",
+                                    "startedAtTime": "2025-10-01T12:30:45",
+                                }
+                            ],
                             "distribution": [
                                 {
                                     "@id": "http://fdri.ceh.ac.uk/id/dataset/nrfa-batch-dataset-test_1-water-daily-flow-mean-57001#distribution",
@@ -136,6 +142,7 @@ class TestBatchTransformer:
                             "dataset": "water-daily-flow-mean",
                             "start_date": datetime(2020, 1, 1, 0, 0, 0),
                             "end_date": datetime(2025, 9, 30, 0, 0, 0),
+                            "last_updated": datetime(2025, 10, 1, 12, 30, 45),
                             "s3_key": "nrfa/batch=test_1/dataset=water-daily-flow-mean/",
                             "s3_bucket": "ukceh-fdri-staging-timeseries-level-0",
                             "s3_column": "value",
