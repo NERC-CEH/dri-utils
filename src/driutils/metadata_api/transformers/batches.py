@@ -1,7 +1,7 @@
 import re
 from datetime import datetime
 
-from driutils.metadata_api.models.batch import Batch, BatchDataset
+from driutils.metadata_api.models.batch import Batch, BatchCollection
 from driutils.metadata_api.utils import get_property
 
 URI_ID_EXTRACT_REGEX = r".+\/([a-zA-Z0-9\-\_]+)$"
@@ -20,10 +20,10 @@ def transform_batches(raw_data: dict) -> list[Batch]:
 
     for item in raw_data["items"]:
         batch_id = get_property("identifier", item)
-        datasets = []
+        collections = []
         annotations = {}
         for data in item["hasPart"]:
-            batch_dataset_id = get_property("@id", data)
+            batch_collection_id = get_property("@id", data)
 
             site = get_property("@id", get_property("originatingSite", data))
             if site:
@@ -64,8 +64,8 @@ def transform_batches(raw_data: dict) -> list[Batch]:
             if started_at:
                 last_updated = datetime.fromisoformat(started_at)
 
-            dataset = BatchDataset(
-                batch_dataset_id=batch_dataset_id,
+            collection = BatchCollection(
+                batch_collection_id=batch_collection_id,
                 variable=variable,
                 units=units,
                 aggregation=aggregation,
@@ -74,7 +74,7 @@ def transform_batches(raw_data: dict) -> list[Batch]:
                 site=site,
                 status=processing_level,
                 measure=measure,
-                dataset=annotations["dataset"],
+                collection=annotations["collection"],
                 start_date=start_date,
                 end_date=end_date,
                 last_updated=last_updated,
@@ -83,8 +83,8 @@ def transform_batches(raw_data: dict) -> list[Batch]:
                 s3_bucket=s3_bucket,
                 access_url=access_url,
             )
-            datasets.append(dataset)
+            collections.append(collection)
 
-        batches.append(Batch(batch_id=batch_id, datasets=datasets))
+        batches.append(Batch(batch_id=batch_id, collections=collections))
 
     return batches

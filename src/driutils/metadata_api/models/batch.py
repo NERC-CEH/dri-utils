@@ -4,13 +4,13 @@ from typing import Optional
 from pydantic import BaseModel, Field, field_validator
 
 
-class BatchDataset(BaseModel):
-    """The BatchDataset model.
+class BatchCollection(BaseModel):
+    """The BatchCollection model.
 
     Some properties are hardcoded until the data can be passed from the UI
     """
 
-    dataset: str
+    collection: str
     site: str
     variable: str
     aggregation: str
@@ -41,4 +41,4 @@ class Batch(BaseModel):
     """The Batch model."""
 
     batch_id: str
-    datasets: list[BatchDataset]
+    collections: list[BatchCollection]

@@ -4,7 +4,7 @@ from datetime import datetime
 import pytest
 import requests
 
-from driutils.metadata_api.models.batch import Batch, BatchDataset
+from driutils.metadata_api.models.batch import Batch, BatchCollection
 from driutils.metadata_api.updater import MetadataAPIUpdater
 
 IN_GITHUB_ACTIONS = os.getenv("GITHUB_ACTIONS") == "true"
@@ -26,7 +26,7 @@ class TestAPIManager:
 
         updater = MetadataAPIUpdater(METADATA_INGESTER_URL)
         payload = (
-            b'{"batch_id":"test_batch","datasets":[{"dataset":"test_dataset","site":"test_site",'
+            b'{"batch_id":"test_batch","collections":[{"collection":"test_collection","site":"test_site",'
             b'"variable":"test_variable","aggregation":"mean","units":"m3s","resolution":"p1d",'
             b'"status":"ingested","s3_key":"test_key","s3_bucket":"test_bucket","s3_column":"value",'
             b'"filename":"test.csv","last_updated":"2025-01-03T00:00:00","start_date":"2025-01-01T00:00:00",'
@@ -41,7 +41,7 @@ class TestAPIManager:
         assert result["detail"] == f"Successfully published data to '{component}' component"
 
         # Delete entry if successful
-        payload = b'{"batch_id":"test_batch","datasets":[]}'
+        payload = b'{"batch_id":"test_batch","collections":[]}'
         mode = "DELETE"
         updater.update_metadata(payload, component, mode)
 
@@ -62,8 +62,8 @@ class TestAPIManager:
 
         updater = MetadataAPIUpdater(METADATA_INGESTER_URL)
 
-        test_batch_dataset = BatchDataset(
-            dataset="test_dataset",
+        test_batch_collection = BatchCollection(
+            collection="test_collection",
             site="test_site",
             variable="test_variable",
             aggregation="mean",
@@ -79,11 +79,11 @@ class TestAPIManager:
             end_date=datetime(2025, 1, 2, 0, 0, 0),
             last_updated=datetime(2025, 1, 3, 0, 0, 0),
         )
-        test_batch = Batch(batch_id="test_batch", datasets=[test_batch_dataset])
+        test_batch = Batch(batch_id="test_batch", collections=[test_batch_collection])
         test_batch_json = test_batch.model_dump_json()
 
         expected_output = (
-            b'{"batch_id":"test_batch","datasets":[{"dataset":"test_dataset","site":"test_site",'
+            b'{"batch_id":"test_batch","collections":[{"collection":"test_collection","site":"test_site",'
             b'"variable":"test_variable","aggregation":"mean","units":"m3s","resolution":"p1d",'
             b'"status":"ingested","s3_key":"test_key","s3_bucket":"test_bucket","s3_column":"value",'
             b'"filename":"test.csv","access_url":"s3://test_bucket/test_key/","measuring_authority":"unknown","uploaded_by":"dri-ui","last_updated":"2025-01-03T00:00:00","start_date":"2025-01-01T00:00:00",'
