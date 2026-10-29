@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from driutils.metadata_api.models.batch import Batch, BatchDataset
+from driutils.metadata_api.models.batch import Batch, BatchCollection
 from driutils.metadata_api.transformers.batches import transform_batches
 
 
@@ -22,7 +22,7 @@ class TestBatchTransformer:
                     ],
                     "hasPart": [
                         {
-                            "@id": "http://fdri.ceh.ac.uk/id/dataset/nrfa-batch-dataset-test_1-water-daily-flow-mean-57001",
+                            "@id": "http://fdri.ceh.ac.uk/id/dataset/nrfa-batch-collection-test_1-water-daily-flow-mean-57001",
                             "title": ["water-daily-flow-mean for 57001 from batch test_1"],
                             "@type": [{"@id": "http://fdri.ceh.ac.uk/vocab/metadata/ObservationDataset"}],
                             "temporalResolution": "P1D",
@@ -33,16 +33,16 @@ class TestBatchTransformer:
                             },
                             "hasAnnotation": [
                                 {
-                                    "@id": "http://fdri.ceh.ac.uk/id/dataset/nrfa-batch-dataset-test_1-water-daily-flow-mean-57001#dataset",
+                                    "@id": "http://fdri.ceh.ac.uk/id/dataset/nrfa-batch-collection-test_1-water-daily-flow-mean-57001#collection",
                                     "hasValue": {
-                                        "@id": "http://fdri.ceh.ac.uk/id/dataset/nrfa-batch-dataset-test_1-water-daily-flow-mean-57001#dataset.value",
+                                        "@id": "http://fdri.ceh.ac.uk/id/dataset/nrfa-batch-collection-test_1-water-daily-flow-mean-57001#collection.value",
                                         "value": "water-daily-flow-mean",
                                     },
                                 },
                                 {
-                                    "@id": "http://fdri.ceh.ac.uk/id/dataset/nrfa-batch-dataset-test_1-water-daily-flow-mean-57001#filename",
+                                    "@id": "http://fdri.ceh.ac.uk/id/dataset/nrfa-batch-collection-test_1-water-daily-flow-mean-57001#filename",
                                     "hasValue": {
-                                        "@id": "http://fdri.ceh.ac.uk/id/dataset/nrfa-batch-dataset-test_1-water-daily-flow-mean-57001#filename.value",
+                                        "@id": "http://fdri.ceh.ac.uk/id/dataset/nrfa-batch-collection-test_1-water-daily-flow-mean-57001#filename.value",
                                         "value": "test_file.csv",
                                     },
                                 },
@@ -60,13 +60,13 @@ class TestBatchTransformer:
                             "sourceDataset": "nrfa/batch=test_1/dataset=water-daily-flow-mean/",
                             "wasModifiedBy": [
                                 {
-                                    "@id": "http://fdri.ceh.ac.uk/id/activity/nrfa-batch-dataset-update-test_1-water-daily-flow-mean-57001#activity-2025-10-01t12:30:45",
+                                    "@id": "http://fdri.ceh.ac.uk/id/activity/nrfa-batch-collection-update-test_1-water-daily-flow-mean-57001#activity-2025-10-01t12:30:45",
                                     "startedAtTime": "2025-10-01T12:30:45",
                                 }
                             ],
                             "distribution": [
                                 {
-                                    "@id": "http://fdri.ceh.ac.uk/id/dataset/nrfa-batch-dataset-test_1-water-daily-flow-mean-57001#distribution",
+                                    "@id": "http://fdri.ceh.ac.uk/id/dataset/nrfa-batch-collection-test_1-water-daily-flow-mean-57001#distribution",
                                     "accessUrl": [
                                         "s3://ukceh-fdri-staging-timeseries-level-0/nrfa/batch=test_1/dataset=water-daily-flow-mean/"
                                     ],
@@ -74,27 +74,27 @@ class TestBatchTransformer:
                             ],
                         },
                         {
-                            "@id": "http://fdri.ceh.ac.uk/id/dataset/nrfa-batch-dataset-test_1-water-daily-flow-mean-57002",
+                            "@id": "http://fdri.ceh.ac.uk/id/dataset/nrfa-batch-collection-test_1-water-daily-flow-mean-57002",
                             "title": ["water-daily-flow-mean for 57002 from batch test_1"],
                             "@type": [{"@id": "http://fdri.ceh.ac.uk/vocab/metadata/ObservationDataset"}],
                             "temporalResolution": "P1D",
                             "temporal": {
-                                "@id": "http://fdri.ceh.ac.uk/id/dataset/nrfa-batch-dataset-test_1-water-daily-flow-mean-57002#temporal",
+                                "@id": "http://fdri.ceh.ac.uk/id/dataset/nrfa-batch-collection-test_1-water-daily-flow-mean-57002#temporal",
                                 "startDate": "2020-01-01T00:00:00",
                                 "endDate": "2025-09-30T00:00:00",
                             },
                             "hasAnnotation": [
                                 {
-                                    "@id": "http://fdri.ceh.ac.uk/id/dataset/nrfa-batch-dataset-test_1-water-daily-flow-mean-57002#dataset",
+                                    "@id": "http://fdri.ceh.ac.uk/id/dataset/nrfa-batch-collection-test_1-water-daily-flow-mean-57002#collection",
                                     "hasValue": {
-                                        "@id": "http://fdri.ceh.ac.uk/id/dataset/nrfa-batch-dataset-test_1-water-daily-flow-mean-57002#dataset.value",
+                                        "@id": "http://fdri.ceh.ac.uk/id/dataset/nrfa-batch-collection-test_1-water-daily-flow-mean-57002#collection.value",
                                         "value": "water-daily-flow-mean",
                                     },
                                 },
                                 {
-                                    "@id": "http://fdri.ceh.ac.uk/id/dataset/nrfa-batch-dataset-test_1-water-daily-flow-mean-57002#filename",
+                                    "@id": "http://fdri.ceh.ac.uk/id/dataset/nrfa-batch-collection-test_1-water-daily-flow-mean-57002#filename",
                                     "hasValue": {
-                                        "@id": "http://fdri.ceh.ac.uk/id/dataset/nrfa-batch-dataset-test_1-water-daily-flow-mean-57002#filename.value",
+                                        "@id": "http://fdri.ceh.ac.uk/id/dataset/nrfa-batch-collection-test_1-water-daily-flow-mean-57002#filename.value",
                                         "value": "test_file.csv",
                                     },
                                 },
@@ -112,7 +112,7 @@ class TestBatchTransformer:
                             "sourceDataset": "nrfa/batch=test_1/dataset=water-daily-flow-mean/",
                             "distribution": [
                                 {
-                                    "@id": "http://fdri.ceh.ac.uk/id/dataset/nrfa-batch-dataset-test_1-water-daily-flow-mean-57002#distribution",
+                                    "@id": "http://fdri.ceh.ac.uk/id/dataset/nrfa-batch-collection-test_1-water-daily-flow-mean-57002#distribution",
                                     "accessUrl": [
                                         "s3://ukceh-fdri-staging-timeseries-level-0/nrfa/batch=test_1/dataset=water-daily-flow-mean/"
                                     ],
@@ -127,10 +127,10 @@ class TestBatchTransformer:
         expected_response = [
             Batch(
                 batch_id = "test_1",
-                datasets = [
-                    BatchDataset(
+                collections = [
+                    BatchCollection(
                         **{
-                            "batch_dataset_id": "http://fdri.ceh.ac.uk/id/dataset/nrfa-batch-dataset-test_1-water-daily-flow-mean-57001",
+                            "batch_collection_id": "http://fdri.ceh.ac.uk/id/dataset/nrfa-batch-collection-test_1-water-daily-flow-mean-57001",
                             "filename": "test_file.csv",
                             "site": "57001",
                             "variable": "flow",
@@ -139,7 +139,7 @@ class TestBatchTransformer:
                             "status": "ingested",
                             "resolution": "p1d",
                             "measure": "flow-p1d-mean-m3s",
-                            "dataset": "water-daily-flow-mean",
+                            "collection": "water-daily-flow-mean",
                             "start_date": datetime(2020, 1, 1, 0, 0, 0),
                             "end_date": datetime(2025, 9, 30, 0, 0, 0),
                             "last_updated": datetime(2025, 10, 1, 12, 30, 45),
@@ -149,9 +149,9 @@ class TestBatchTransformer:
                             "access_url": "s3://ukceh-fdri-staging-timeseries-level-0/nrfa/batch=test_1/dataset=water-daily-flow-mean/",
                         }
                     ),
-                    BatchDataset(
+                    BatchCollection(
                         **{
-                            "batch_dataset_id": "http://fdri.ceh.ac.uk/id/dataset/nrfa-batch-dataset-test_1-water-daily-flow-mean-57002",
+                            "batch_collection_id": "http://fdri.ceh.ac.uk/id/dataset/nrfa-batch-collection-test_1-water-daily-flow-mean-57002",
                             "filename": "test_file.csv",
                             "site": "57002",
                             "variable": "flow",
@@ -160,7 +160,7 @@ class TestBatchTransformer:
                             "status": "ingested",
                             "resolution": "p1d",
                             "measure": "flow-p1d-mean-m3s",
-                            "dataset": "water-daily-flow-mean",
+                            "collection": "water-daily-flow-mean",
                             "start_date": datetime(2020, 1, 1, 0, 0, 0),
                             "end_date": datetime(2025, 9, 30, 0, 0, 0),
                             "s3_key": "nrfa/batch=test_1/dataset=water-daily-flow-mean/",

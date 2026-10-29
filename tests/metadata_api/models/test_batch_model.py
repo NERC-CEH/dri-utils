@@ -2,14 +2,14 @@ from datetime import date, datetime
 
 import pytest
 
-from driutils.metadata_api.models.batch import BatchDataset
+from driutils.metadata_api.models.batch import BatchCollection
 
 
-class TestBatchDataset:
-    """Test the BatchDataset model"""
+class TestBatchCollection:
+    """Test the BatchCollection model"""
 
     base = {
-        "dataset": "water-daily-flow-mean",
+        "collection": "water-daily-flow-mean",
         "site": "57001",
         "variable": "flow",
         "aggregation": "mean",
@@ -33,8 +33,8 @@ class TestBatchDataset:
     )
     def test_ensure_datetime(self, value: date | datetime | None, expected: datetime | None) -> None:
         """Datetimes keep their time, dates are converted to midnight and None is left alone"""
-        dataset = BatchDataset(**self.base, last_updated=value, start_date=value, end_date=value)
+        collection = BatchCollection(**self.base, last_updated=value, start_date=value, end_date=value)
 
-        assert dataset.last_updated == expected
-        assert dataset.start_date == expected
-        assert dataset.end_date == expected
+        assert collection.last_updated == expected
+        assert collection.start_date == expected
+        assert collection.end_date == expected
