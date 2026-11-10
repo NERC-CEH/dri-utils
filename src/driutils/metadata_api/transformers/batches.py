@@ -48,7 +48,7 @@ def transform_batches(raw_data: dict) -> list[Batch]:
                 if annotation_name:
                     annotations[annotation_name.group(1)] = get_property("value", get_property("hasValue", annotation))
 
-            s3_key = data["sourceDataset"]
+            s3_key = data["sourceCollection"]
             s3_column = data["sourceColumnName"]
             s3_bucket = data["sourceBucket"]
             access_url = get_property("accessUrl", get_property("distribution", data))
